@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # 1. TimescaleDB (Time-series PostgreSQL)
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: hydrosense_timescale
+    environment:
+      POSTGRES_DB: hydrosense
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/seed_data.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hydrosense"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Eclipse Mosquitto MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: hydrosense_mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    restart: unless-stopped
+
+  # 3. MQTT Ingestion Worker & EWS Rules Engine
+  mqtt_consumer:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hydrosense_consumer
+    command: python mqtt_consumer.py
+    environment:
+      DB_HOST: timescaledb
+      DB_PORT: 5432
+      DB_NAME: hydrosense
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      MQTT_BROKER: mosquitto
+      MQTT_PORT: 1883
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+    restart: unless-stopped
+
+  # 4. REST API Server (FastAPI)
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hydrosense_api
+    command: uvicorn api:app --host 0.0.0.0 --port 8000
+    environment:
+      DB_HOST: timescaledb
+      DB_PORT: 5432
+      DB_NAME: hydrosense
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "8000:8000"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # 5. Web Frontend (Nginx serving Dashboard)
+  frontend:
+    image: nginx:alpine
+    container_name: hydrosense_frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    restart: unless-stopped
+
+volumes:
+  timescale_data:
+  mosquitto_data:
+  mosquitto_log:

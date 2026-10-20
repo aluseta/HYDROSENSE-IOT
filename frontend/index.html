@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>HydroSense‑IoT · Command Dashboard</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    .pulse-dot{animation:pulse-anim 1.8s infinite;}
+    @keyframes pulse-anim{0%{box-shadow:0 0 0 0 rgba(34,197,94,.7);}70%{box-shadow:0 0 0 8px rgba(34,197,94,0);}100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}}
+    .nav-active  {background:rgba(6,182,212,.18);border-color:rgba(6,182,212,.55);color:#22d3ee;}
+    .nav-inactive{background:rgba(30,41,59,.7);border-color:rgba(51,65,85,.5);color:#94a3b8;}
+    .sc-active   {background:rgba(6,182,212,.15);border-color:rgba(6,182,212,.4);color:#22d3ee;}
+    .sc-inactive {background:rgba(30,41,59,.8);border-color:rgba(51,65,85,.6);color:#94a3b8;}
+    input[type=number]::-webkit-inner-spin-button{opacity:.5;}
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased font-sans min-h-screen">
+
+<!-- ══════════ TOP NAVIGATION ══════════ -->
+<nav class="bg-slate-900 border-b border-slate-800 px-4 md:px-6 py-3 sticky top-0 z-50 shadow-xl">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+    <!-- Brand -->
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-gradient-to-tr from-cyan-600 to-blue-500 rounded-xl flex items-center justify-center text-lg shadow-md shadow-cyan-500/20">💧</div>
+      <div>
+        <span class="font-bold text-white text-base tracking-tight">HydroSense‑IoT</span>
+        <span class="text-cyan-400 text-base"> · EWS Command Center</span>
+      </div>
+    </div>
+
+    <!-- Page tabs -->
+    <div class="flex items-center gap-2">
+      <button id="nav-main"   onclick="goPage('main')"   class="nav-btn text-xs px-4 py-2 rounded-lg border font-semibold transition nav-active">📡 Dashboard Utama</button>
+      <button id="nav-horton" onclick="goPage('horton')" class="nav-btn text-xs px-4 py-2 rounded-lg border font-semibold transition nav-inactive">🔬 Survey & Fitting Horton</button>
+    </div>
+
+    <!-- Live status -->
+    <div class="flex items-center gap-3 text-xs">
+      <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl">
+        <select id="stationSel" class="bg-transparent text-white text-xs font-medium focus:outline-none cursor-pointer">
+          <option class="bg-slate-800">HS-CTM-01 · Citarum Hulu</option>
+          <option class="bg-slate-800">HS-JTG-02 · Jatinangor</option>
+          <option class="bg-slate-800">HS-GRT-03 · Garut</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+        <span class="text-emerald-400 font-mono font-semibold">LIVE</span>
+        <span class="text-slate-500">|</span>
+        <span class="font-mono text-slate-300" id="clock">--:--:--</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario bar (only shown on main page) -->
+  <div id="scenario-bar" class="mt-3 pt-3 border-t border-slate-800 flex flex-wrap gap-2 items-center">
+    <span class="text-xs text-slate-400">⚙️ Skenario:</span>
+    <button onclick="setScenario('normal')"     id="sc-normal"     class="sc text-xs px-3 py-1.5 rounded-lg border font-medium transition sc-active">☀️ Normal</button>
+    <button onclick="setScenario('flashflood')" id="sc-flashflood" class="sc text-xs px-3 py-1.5 rounded-lg border font-medium transition sc-inactive">⛈️ Banjir Hortonian</button>
+    <button onclick="setScenario('landslide')"  id="sc-landslide"  class="sc text-xs px-3 py-1.5 rounded-lg border font-medium transition sc-inactive">⛰️ Risiko Longsor</button>
+    <button onclick="setScenario('drought')"    id="sc-drought"    class="sc text-xs px-3 py-1.5 rounded-lg border font-medium transition sc-inactive">🌾 Kemarau</button>
+  </div>
+</nav>
+
+<!-- ══════════ PAGE: DASHBOARD UTAMA ══════════ -->
+<div id="page-main" class="p-4 md:p-6 space-y-5">
+
+  <!-- KPI CARDS -->
+  <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
+      <div class="text-xs text-slate-400 mb-1.5">⚡ PVolt</div>
+      <div class="text-xl font-bold font-mono" id="kpi-pvolt">–</div>
+      <div class="mt-2 h-1.5 bg-slate-800 rounded-full"><div id="bar-pvolt" class="h-full rounded-full transition-all bg-emerald-500"></div></div>
+      <div class="text-xs mt-1" id="sub-pvolt">–</div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
+      <div class="text-xs text-slate-400 mb-1.5">🌡️ PTemp</div>
+      <div class="text-xl font-bold font-mono" id="kpi-ptemp">–</div>
+      <div class="text-xs text-slate-500 mt-3">Max: 50°C</div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
+      <div class="text-xs text-slate-400 mb-1.5">🌧️ Curah Hujan (RA)</div>
+      <div class="text-xl font-bold font-mono text-cyan-400" id="kpi-ra">–</div>
+      <div class="text-xs text-slate-500 mt-1">24h: <span id="kpi-ra24" class="text-white font-mono">–</span></div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
+      <div class="text-xs text-slate-400 mb-1.5">💧 Genangan (H)</div>
+      <div class="text-xl font-bold font-mono text-blue-400" id="kpi-h">–</div>
+      <div class="text-xs text-slate-500 mt-1">di ring infiltrometer</div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
+      <div class="text-xs text-slate-400 mb-1.5">⏳ Infiltrasi (IR)</div>
+      <div class="text-xl font-bold font-mono text-teal-400" id="kpi-ir">–</div>
+      <div class="text-xs mt-1" id="kpi-phase">–</div>
+    </div>
+    <div id="ews-card" class="bg-slate-900 border border-emerald-500/40 rounded-xl p-3.5">
+      <div class="text-xs text-slate-400 mb-1.5">🛡️ EWS Status</div>
+      <div class="font-bold text-base" id="ews-title">–</div>
+      <div class="text-xs text-slate-400 mt-1 line-clamp-2" id="ews-sub">–</div>
+    </div>
+  </section>
+
+  <!-- MAIN PANEL: 40% Soil Profile | 60% Infiltration -->
+  <section class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+    <!-- LEFT: Soil Profile (SM + ST combined vertical, 2/5) -->
+    <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <h2 class="font-bold text-white text-sm flex items-center gap-2">🪵 Profil Tanah (SM & ST)</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Kedalaman ↓ | <span class="text-blue-400">SM%</span> (bawah) · <span class="text-orange-400">ST°C</span> (atas)</p>
+        </div>
+        <div class="flex flex-col gap-1 text-[10px] text-slate-400 shrink-0">
+          <span class="flex items-center gap-1.5"><span class="w-5 h-2.5 rounded-sm bg-blue-500/60"></span>SM (%)</span>
+          <span class="flex items-center gap-1.5"><span class="w-5 h-0.5 bg-orange-400"></span>ST (°C)</span>
+        </div>
+      </div>
+      <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2" style="height:355px">
+        <canvas id="soilChart" class="w-full h-full"></canvas>
+      </div>
+    </div>
+
+    <!-- RIGHT: Infiltration Chart (3/5) -->
+    <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+        <div>
+          <h2 class="font-bold text-white text-sm flex items-center gap-2">📉 Hujan (RA) & Laju Infiltrasi f(t)</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Hyetograph terbalik (atas) · f(t) sensor (solid) · Horton baseline (dashed) · Zona limpasan (merah)</p>
+        </div>
+        <div class="flex flex-wrap gap-2 text-[10px] shrink-0">
+          <span class="flex items-center gap-1"><span class="w-4 h-3 bg-blue-500/60 rounded-sm"></span>RA</span>
+          <span class="flex items-center gap-1"><span class="w-4 h-0.5 bg-teal-400"></span>f(t)</span>
+          <span class="flex items-center gap-1"><span class="w-4 border-t border-dashed border-slate-400"></span>Horton</span>
+          <span class="flex items-center gap-1"><span class="w-4 h-2.5 bg-rose-500/30 rounded-sm"></span>Limpasan</span>
+        </div>
+      </div>
+
+      <!-- Phase indicator pills -->
+      <div class="flex flex-wrap gap-1.5 mb-3" id="phase-pills">
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-900/50 border border-emerald-700/40 text-emerald-300">Fase 1: f(t)=I(t)</span>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-900/50 border border-blue-700/40 text-blue-300">Fase 2: f(t)=I−ΔH/Δt</span>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-900/50 border border-purple-700/40 text-purple-300">Fase 3: Ks=−ΔH/Δt</span>
+      </div>
+
+      <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2" style="height:280px">
+        <canvas id="infChart" class="w-full h-full"></canvas>
+      </div>
+
+      <!-- Horton state connector -->
+      <div class="mt-3 bg-slate-950/50 border border-slate-800 rounded-xl p-3 text-xs flex flex-wrap gap-4 items-center">
+        <div>
+          <span class="text-slate-400">Posisi Horton saat ini:</span>
+          <span class="ml-1 font-mono text-teal-400 font-bold" id="horton-pos">–</span>
+        </div>
+        <div>
+          <span class="text-slate-400">Ks survey:</span>
+          <span class="ml-1 font-mono text-amber-400 font-bold" id="ks-survey-lbl">0.96 mm/min</span>
+        </div>
+        <div>
+          <span class="text-slate-400">Ks real-time:</span>
+          <span class="ml-1 font-mono text-purple-400 font-bold" id="ks-rt-lbl">–</span>
+        </div>
+        <div>
+          <span class="text-slate-400">Selisih:</span>
+          <span class="ml-1 font-mono text-cyan-400 font-bold" id="ks-delta-lbl">–</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EWS MATRIX -->
+  <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+    <h2 class="font-bold text-white text-sm mb-3 flex items-center gap-2">🛡️ Matriks Peringatan Dini (Early Warning System)</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+      <div id="ews-flood" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 flex items-start gap-3 transition-all">
+        <span id="badge-flood" class="text-2xl mt-0.5">🟢</span>
+        <div>
+          <div class="font-semibold text-sm text-white">Banjir Bandang (Hortonian)</div>
+          <div class="text-xs text-slate-400 mt-1" id="desc-flood">Intensitas hujan di bawah kapasitas infiltrasi tanah. Tidak ada limpasan kritis.</div>
+          <div class="mt-2 text-[10px] font-mono text-slate-500">Kondisi: RA vs f(t) · SM lapisan atas</div>
+        </div>
+      </div>
+
+      <div id="ews-slide" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 flex items-start gap-3 transition-all">
+        <span id="badge-slide" class="text-2xl mt-0.5">🟢</span>
+        <div>
+          <div class="font-semibold text-sm text-white">Longsor Dangkal</div>
+          <div class="text-xs text-slate-400 mt-1" id="desc-slide">Tekanan air pori lapisan 30–40 cm dalam ambang aman.</div>
+          <div class="mt-2 text-[10px] font-mono text-slate-500">Kondisi: SM 30cm + SM 40cm · Iverson pore pressure</div>
+        </div>
+      </div>
+
+      <div id="ews-drought" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 flex items-start gap-3 transition-all">
+        <span id="badge-drought" class="text-2xl mt-0.5">🟢</span>
+        <div>
+          <div class="font-semibold text-sm text-white">Kekeringan Agrikultur</div>
+          <div class="text-xs text-slate-400 mt-1" id="desc-drought">Kelembaban di atas titik layu permanen (PWP ≈ 15%).</div>
+          <div class="mt-2 text-[10px] font-mono text-slate-500">Kondisi: SM rata-rata &lt; PWP · 0 RA &gt; 3 hari</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div><!-- /page-main -->
+
+
+<!-- ══════════ PAGE: HORTON FITTING ══════════ -->
+<div id="page-horton" class="hidden p-4 md:p-6 space-y-5">
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- INPUT FORM -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <h2 class="font-bold text-white text-base mb-1 flex items-center gap-2">📋 Data Survey Lapangan — Double-Ring Infiltrometer</h2>
+      <p class="text-xs text-slate-400 mb-4">
+        Masukkan pasangan <strong class="text-white">waktu (menit)</strong> dan <strong class="text-white">laju infiltrasi f(t) terukur (mm/menit)</strong>
+        dari uji ASTM D3385 di lapangan. Fitting otomatis menggunakan metode Horton linearisasi.
+      </p>
+
+      <div class="overflow-x-auto mb-3">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-xs text-slate-400 border-b border-slate-800">
+              <th class="text-left pb-2 pr-2 w-8">No</th>
+              <th class="text-left pb-2 pr-2">Waktu (menit)</th>
+              <th class="text-left pb-2 pr-2">f(t) (mm/menit)</th>
+              <th class="pb-2 w-8"></th>
+            </tr>
+          </thead>
+          <tbody id="tBody" class="divide-y divide-slate-800/50"></tbody>
+        </table>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <button onclick="addRow()"    class="text-xs px-3 py-1.5 bg-cyan-900/40 border border-cyan-700/50 text-cyan-300 rounded-lg hover:bg-cyan-800/40 transition font-medium">+ Tambah Baris</button>
+        <button onclick="doFit()"     class="text-xs px-4 py-1.5 bg-teal-700 hover:bg-teal-600 text-white rounded-lg transition font-semibold">🔍 Fit Kurva Horton</button>
+        <button onclick="loadDemo()"  class="text-xs px-3 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg hover:bg-slate-700 transition">📂 Load Data Demo</button>
+        <button onclick="clearData()" class="text-xs px-3 py-1.5 bg-rose-900/30 border border-rose-700/40 text-rose-300 rounded-lg hover:bg-rose-900/50 transition">🗑 Hapus Semua</button>
+      </div>
+
+      <!-- Result panel -->
+      <div id="fitResult" class="hidden mt-5 bg-slate-950/60 border border-teal-700/40 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-bold text-teal-400 flex items-center gap-2">✅ Hasil Fitting</h3>
+          <span class="text-xs text-slate-400">R² = <span id="r2-val" class="text-emerald-400 font-bold font-mono">–</span></span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mb-3">
+          <div class="bg-slate-900 rounded-lg p-2.5 text-center">
+            <div class="text-[10px] text-slate-400 mb-1">f₀ (Awal)</div>
+            <div class="text-base font-bold font-mono text-amber-400" id="f0-val">–</div>
+            <div class="text-[10px] text-slate-500">mm/min</div>
+          </div>
+          <div class="bg-slate-900 rounded-lg p-2.5 text-center">
+            <div class="text-[10px] text-slate-400 mb-1">fc = Ks</div>
+            <div class="text-base font-bold font-mono text-teal-400" id="fc-val">–</div>
+            <div class="text-[10px] text-slate-500">mm/min</div>
+          </div>
+          <div class="bg-slate-900 rounded-lg p-2.5 text-center">
+            <div class="text-[10px] text-slate-400 mb-1">k (Decay)</div>
+            <div class="text-base font-bold font-mono text-purple-400" id="k-val">–</div>
+            <div class="text-[10px] text-slate-500">min⁻¹</div>
+          </div>
+        </div>
+        <div class="bg-slate-900 rounded-lg p-2.5 mb-3 font-mono text-xs text-slate-300 text-center">
+          f(t) = <span class="text-teal-400" id="eq-fc">–</span> + (<span class="text-amber-400" id="eq-f0">–</span> − <span class="text-teal-400" id="eq-fc2">–</span>)·e<sup>−<span class="text-purple-400" id="eq-k">–</span>·t</sup>
+        </div>
+        <button onclick="applyBaseline()" class="w-full text-xs py-2 bg-teal-700 hover:bg-teal-600 text-white rounded-lg font-semibold transition">
+          📡 Terapkan sebagai Baseline ke Dashboard Utama
+        </button>
+      </div>
+
+      <!-- Info box -->
+      <div class="mt-4 bg-blue-950/30 border border-blue-800/40 rounded-xl p-3 text-xs text-blue-200 space-y-1">
+        <div class="font-semibold text-blue-300 mb-1">💡 Panduan Pengisian Data Survey:</div>
+        <div>• Mulai dari t=0 (kondisi tanah kering awal), catat f tiap 5–10 menit</div>
+        <div>• Lanjutkan hingga f(t) stabil ≈ konstan (biasanya 60–120 menit)</div>
+        <div>• Nilai f(t) stabil akhir = Ks (konduktivitas hidraulik jenuh)</div>
+        <div>• R² &gt; 0.95 menandakan fitting yang sangat baik</div>
+      </div>
+    </div>
+
+    <!-- CHART PREVIEW -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <h2 class="font-bold text-white text-base mb-1 flex items-center gap-2">📈 Preview Kurva Fitting Horton</h2>
+      <p class="text-xs text-slate-400 mb-4">
+        🔵 Titik biru = data lapangan &nbsp;|&nbsp; 🟠 Kurva oranye = Horton fitted &nbsp;|&nbsp; --- = fc (Ks stabil)
+      </p>
+      <div class="relative bg-slate-950/70 border border-slate-800 rounded-xl p-2" style="height:420px">
+        <canvas id="hortonChart" class="w-full h-full"></canvas>
+        <div id="chartEmpty" class="absolute inset-0 flex items-center justify-center text-slate-600 text-sm pointer-events-none">
+          ← Masukkan data & klik "Fit Kurva Horton"
+        </div>
+      </div>
+      <div class="mt-3 bg-slate-950/50 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-400 space-y-1">
+        <div>Horton (1933): <span class="text-orange-300">f(t) = f<sub>c</sub> + (f<sub>0</sub> − f<sub>c</sub>)·e<sup>−kt</sup></span></div>
+        <div>Saturated hydraulic conductivity: <span class="text-teal-300">K<sub>s</sub> ≡ f<sub>c</sub></span></div>
+        <div>Limpasan Hortonian: <span class="text-rose-300">q(t) = I(t) − f(t) &nbsp;[jika I &gt; f]</span></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /page-horton -->
+
+
+<!-- ══════════ JAVASCRIPT ENGINE ══════════ -->
+<script>
+// ─── Global state ───────────────────────────────────
+let horton = { f0:8.5, fc:0.96, k:0.08 }; // mm/min
+let curScenario = 'normal';
+let surveyData = [];
+
+const DEPTHS = [10,20,30,40];
+const SC = {
+  normal:    {pvolt:12.82,ptemp:29.4,ra:0.0, h:0.0, ir:0.024,ra24:14.2, sm:[38.2,34.1,28.5,21.0],st:[26.5,25.8,25.2,24.9],ews:'NORMAL',        ewsS:'Semua parameter dalam ambang aman.',ewsC:'emerald',phase:'pra-genangan'},
+  flashflood:{pvolt:12.35,ptemp:24.8,ra:14.6,h:28.4,ir:0.003,ra24:68.5, sm:[94.5,88.2,62.0,41.5],st:[23.1,23.4,23.8,24.0],ews:'⚠️ AWAS BANJIR',ewsS:'RA ≫ f(t)! Limpasan permukaan masif.',ewsC:'rose',   phase:'genangan-aktif'},
+  landslide: {pvolt:12.40,ptemp:25.0,ra:4.8, h:8.1, ir:0.008,ra24:112.0,sm:[98.0,96.5,95.2,92.8],st:[22.8,22.9,23.1,23.3],ews:'⚠️ AWAS LONGSOR',ewsS:'SM lapisan 30–40cm jenuh kritis!',   ewsC:'rose',   phase:'genangan-aktif'},
+  drought:   {pvolt:13.45,ptemp:38.6,ra:0.0, h:0.0, ir:0.048,ra24:0.0,  sm:[9.2,11.4,13.8,15.2], st:[32.4,30.8,29.5,28.6],ews:'🌾 KEKERINGAN',  ewsS:'SM di bawah titik layu permanen.',   ewsC:'amber',  phase:'pra-genangan'},
+};
+
+// ─── Page navigation ────────────────────────────────
+function goPage(p){
+  ['main','horton'].forEach(k=>{
+    document.getElementById('page-'+k).classList.toggle('hidden',k!==p);
+    const nb=document.getElementById('nav-'+k);
+    nb.classList.toggle('nav-active',k===p);
+    nb.classList.toggle('nav-inactive',k!==p);
+  });
+  document.getElementById('scenario-bar').classList.toggle('hidden',p!=='main');
+  if(p==='main') setTimeout(redrawMain,80);
+  if(p==='horton') setTimeout(()=>{if(surveyData.length) drawHorton();},80);
+}
+
+// ─── Scenario ───────────────────────────────────────
+function setScenario(key){
+  curScenario=key;
+  document.querySelectorAll('.sc').forEach(b=>{b.classList.remove('sc-active');b.classList.add('sc-inactive');});
+  document.getElementById('sc-'+key).classList.remove('sc-inactive');
+  document.getElementById('sc-'+key).classList.add('sc-active');
+  updateKPIs(); redrawMain();
+}
+
+// ─── KPI update ─────────────────────────────────────
+function updateKPIs(){
+  const d=SC[curScenario];
+  const el=(id,v)=>{const e=document.getElementById(id);if(e)e.innerHTML=v;};
+
+  el('kpi-pvolt',d.pvolt.toFixed(2)+' <span class="text-sm text-slate-400">V</span>');
+  const pct=Math.round((d.pvolt-11)/(13.6-11)*100);
+  document.getElementById('bar-pvolt').style.width=pct+'%';
+  document.getElementById('bar-pvolt').className='h-full rounded-full transition-all '+(pct>60?'bg-emerald-500':pct>30?'bg-amber-500':'bg-rose-500');
+  el('sub-pvolt','<span class="'+(pct>60?'text-emerald-400':'text-amber-400')+'">'+(pct>60?'Prima ✓':'⚠️ Perhatian')+' ('+pct+'%)</span>');
+
+  el('kpi-ptemp',d.ptemp.toFixed(1)+' <span class="text-sm text-slate-400">°C</span>');
+  el('kpi-ra',   d.ra.toFixed(1)+' <span class="text-sm text-slate-400">mm/min</span>');
+  el('kpi-ra24', d.ra24.toFixed(1)+' mm');
+  el('kpi-h',    d.h.toFixed(1)+' <span class="text-sm text-slate-400">mm</span>');
+  el('kpi-ir',   d.ir.toFixed(3)+' <span class="text-sm text-slate-400">mm/s</span>');
+
+  const phaseMap={'pra-genangan':'<span class="text-emerald-400">Fase 1 · Pra-genangan</span>','genangan-aktif':'<span class="text-blue-400">Fase 2 · Genangan Aktif</span>','post-hujan':'<span class="text-purple-400">Fase 3 · Post-hujan/Ks</span>'};
+  el('kpi-phase',phaseMap[d.phase]||'–');
+
+  const ewsCls={rose:'bg-rose-950/40 border-rose-500/60',amber:'bg-amber-950/40 border-amber-500/60',emerald:'bg-slate-900 border-emerald-500/40'};
+  const ewsTxt={rose:'text-rose-400',amber:'text-amber-400',emerald:'text-emerald-400'};
+  document.getElementById('ews-card').className='rounded-xl p-3.5 border '+ewsCls[d.ewsC];
+  el('ews-title','<span class="font-bold text-base '+ewsTxt[d.ewsC]+'">'+d.ews+'</span>');
+  el('ews-sub',d.ewsS);
+
+  // EWS matrix
+  const flood  = curScenario==='flashflood';
+  const slide  = curScenario==='landslide';
+  const drought= curScenario==='drought';
+  setEwsBox('flood',  flood,  '🚨','KRITIS: Limpasan Hortonian masif terdeteksi!','Aman: tidak ada limpasan kritis.');
+  setEwsBox('slide',  slide,  '🚨','KRITIS: Tekanan air pori lapisan dalam sangat tinggi!','Aman: stabilitas lereng terjaga.');
+  setEwsBox('drought',drought,'⚠️','WASPADA: SM di bawah titik layu permanen.','Aman: kelembaban tanah cukup.');
+
+  // Horton connector
+  const irNow=d.ir*60; // mm/s → mm/min
+  const ksRT=(d.h>0&&d.ra===0)?d.ir.toFixed(4):d.ir.toFixed(4);
+  const delta=(parseFloat(ksRT)-horton.fc/60).toFixed(4);
+  el('horton-pos','f(t) = '+irNow.toFixed(3)+' mm/min');
+  el('ks-survey-lbl',horton.fc.toFixed(3)+' mm/min');
+  el('ks-rt-lbl',ksRT+' mm/s');
+  el('ks-delta-lbl',(delta>=0?'+':'')+delta+' mm');
+}
+
+function setEwsBox(type,triggered,icon,dangerTxt,safeTxt){
+  const box=document.getElementById('ews-'+type);
+  const badge=document.getElementById('badge-'+type);
+  const desc=document.getElementById('desc-'+type);
+  if(triggered){
+    box.className='p-3.5 rounded-xl border border-rose-500/60 bg-rose-950/30 flex items-start gap-3 transition-all';
+    badge.innerText='🚨'; desc.className='text-xs text-rose-300 mt-1'; desc.innerText=dangerTxt;
+  } else {
+    box.className='p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 flex items-start gap-3 transition-all';
+    badge.innerText='🟢'; desc.className='text-xs text-slate-400 mt-1'; desc.innerText=safeTxt;
+  }
+}
+
+// ─── Canvas helper ───────────────────────────────────
+function setupCanvas(id){
+  const c=document.getElementById(id);
+  const dpr=window.devicePixelRatio||1;
+  const r=c.getBoundingClientRect();
+  c.width=r.width*dpr; c.height=r.height*dpr;
+  const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+  return{ctx,w:r.width,h:r.height};
+}
+
+// ─── Horton model ────────────────────────────────────
+const hF=t=>horton.fc+(horton.f0-horton.fc)*Math.exp(-horton.k*t);
+
+// ─── Draw: Soil Profile (SM+ST combined vertical) ────
+function drawSoilChart(){
+  const{ctx,w,h}=setupCanvas('soilChart');
+  const d=SC[curScenario];
+  const ml=54,mr=50,mt=38,mb=38;
+  const pw=w-ml-mr,ph=h-mt-mb;
+
+  const yD=dep=>mt+(dep/40)*ph;
+  const xSM=v=>ml+(v/100)*pw;
+  const allST=d.st;
+  const stMin=Math.floor(Math.min(...allST)-2);
+  const stMax=Math.ceil(Math.max(...allST)+2);
+  const xST=v=>ml+(v-stMin)/(stMax-stMin)*pw;
+
+  // Background depth gradient
+  const bg=ctx.createLinearGradient(0,mt,0,mt+ph);
+  bg.addColorStop(0,'rgba(15,23,42,0)'); bg.addColorStop(1,'rgba(15,23,42,.5)');
+  ctx.fillStyle=bg; ctx.fillRect(ml,mt,pw,ph);
+
+  // Grid lines (horizontal depths)
+  ctx.strokeStyle='#1e293b'; ctx.lineWidth=1;
+  [0,10,20,30,40].forEach(dep=>{
+    const y=yD(dep);
+    ctx.beginPath(); ctx.moveTo(ml,y); ctx.lineTo(ml+pw,y); ctx.stroke();
+    ctx.fillStyle='#64748b'; ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.font='10px monospace';
+    ctx.fillText(dep===0?'0 cm':'−'+dep+' cm',ml-6,y);
+  });
+
+  // SM vertical gridlines
+  [0,20,40,60,80,100].forEach(v=>{
+    const x=xSM(v);
+    ctx.strokeStyle='#1e293b'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x,mt); ctx.lineTo(x,mt+ph); ctx.stroke();
+    ctx.fillStyle='#60a5fa'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='10px monospace';
+    ctx.fillText(v+'%',x,mt+ph+6);
+  });
+
+  // Reference lines
+  [[15,'#f59e0b'],[90,'#f43f5e']].forEach(([v,c])=>{
+    const x=xSM(v);
+    ctx.strokeStyle=c; ctx.lineWidth=1; ctx.setLineDash([3,4]);
+    ctx.beginPath(); ctx.moveTo(x,mt); ctx.lineTo(x,mt+ph); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=c; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.font='9px monospace';
+    ctx.fillText(v==='15'?'PWP':'Sat.',x,mt-3);
+  });
+
+  // SM area
+  const smP=d.sm.map((v,i)=>({x:xSM(v),y:yD(DEPTHS[i])}));
+  ctx.beginPath();
+  ctx.moveTo(ml,mt);
+  ctx.lineTo(smP[0].x,smP[0].y);
+  smP.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(ml,yD(40)); ctx.closePath();
+  const gSM=ctx.createLinearGradient(ml,0,ml+pw,0);
+  gSM.addColorStop(0,'rgba(59,130,246,.08)');
+  gSM.addColorStop(1,'rgba(59,130,246,.50)');
+  ctx.fillStyle=gSM; ctx.fill();
+
+  // SM line
+  ctx.beginPath(); ctx.moveTo(smP[0].x,smP[0].y);
+  smP.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle='#60a5fa'; ctx.lineWidth=2.5; ctx.stroke();
+
+  // SM dots + labels
+  smP.forEach((p,i)=>{
+    const v=d.sm[i];
+    ctx.beginPath(); ctx.arc(p.x,p.y,5,0,Math.PI*2);
+    ctx.fillStyle=v>=90?'#f43f5e':v>=70?'#3b82f6':v>=30?'#0ea5e9':'#f59e0b';
+    ctx.fill(); ctx.strokeStyle='#e0f2fe'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='#e0f2fe'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.font='bold 10px monospace';
+    ctx.fillText(v.toFixed(1)+'%',p.x+7,p.y);
+  });
+
+  // ST line
+  const stP=d.st.map((v,i)=>({x:xST(v),y:yD(DEPTHS[i])}));
+  ctx.beginPath(); ctx.moveTo(stP[0].x,stP[0].y);
+  stP.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle='#fb923c'; ctx.lineWidth=2.5; ctx.stroke();
+
+  // ST dots + labels
+  stP.forEach((p,i)=>{
+    ctx.beginPath(); ctx.arc(p.x,p.y,5,0,Math.PI*2);
+    ctx.fillStyle='#c2410c'; ctx.fill(); ctx.strokeStyle='#fed7aa'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='#fed7aa'; ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.font='bold 10px monospace';
+    ctx.fillText(d.st[i].toFixed(1)+'°C',p.x-7,p.y);
+  });
+
+  // ST top axis
+  for(let i=0;i<=4;i++){
+    const v=stMin+i*(stMax-stMin)/4;
+    const x=xST(v);
+    ctx.fillStyle='#fb923c'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.font='10px monospace';
+    ctx.fillText(v.toFixed(0)+'°C',x,mt-4);
+  }
+
+  // Axis titles
+  ctx.fillStyle='#60a5fa'; ctx.font='10px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText('SM (%)',ml+pw/2,mt+ph+20);
+  ctx.fillStyle='#fb923c'; ctx.textBaseline='bottom';
+  ctx.fillText('ST (°C)',ml+pw/2,mt-17);
+}
+
+// ─── Draw: Infiltration Chart ────────────────────────
+function drawInfChart(){
+  const{ctx,w,h}=setupCanvas('infChart');
+  const d=SC[curScenario];
+  const ml=50,mr=20,mt=28,mb=38;
+  const pw=w-ml-mr,ph=h-mt-mb;
+  const pts=60;
+
+  // Generate data
+  const ra=[],ft=[],ht=[];
+  for(let i=0;i<pts;i++){
+    let rain=0,inf=0;
+    if(curScenario==='flashflood'){
+      rain=i>=15&&i<=45?12+4*Math.sin((i-15)*Math.PI/30)+Math.random()*1.5:Math.random()*.4;
+      inf=Math.max(horton.fc/60,hF(Math.max(0,i-10))/60);
+    } else if(curScenario==='landslide'){
+      rain=i>=5?4+Math.sin(i/4):.1;
+      inf=Math.max(0.005,hF(Math.max(0,i-5))/60*.7);
+    } else if(curScenario==='drought'){
+      rain=0; inf=hF(0)/60+.004;
+    } else {
+      rain=i>40?Math.random()*2:.1;
+      inf=i>40?Math.max(horton.fc/60,hF(i-40)/60):hF(0)/60+.003;
+    }
+    ra.push(rain); ft.push(inf);
+  }
+
+  const maxRA=Math.max(20,...ra)*1.1;
+  const maxIR=Math.max(.12,...ft,hF(0)/60*1.2);
+  const xOf=i=>ml+(i/(pts-1))*pw;
+  const yIR=v=>mt+ph/2+(ph/2)*(1-v/maxIR);
+  const yRA=v=>mt+(v/maxRA)*(ph*.44);
+
+  // Grid
+  ctx.strokeStyle='#1e293b'; ctx.lineWidth=1;
+  for(let r=0;r<=4;r++){const y=mt+r*(ph/4);ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(ml+pw,y);ctx.stroke();}
+  for(let c=0;c<=5;c++){
+    const x=ml+(c/5)*pw;
+    ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,mt+ph);ctx.stroke();
+    ctx.fillStyle='#475569';ctx.textAlign='center';ctx.font='9px monospace';
+    ctx.fillText((c*12)+'m',x,mt+ph+13);
+  }
+
+  // Midline
+  ctx.strokeStyle='#334155';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(ml,mt+ph/2);ctx.lineTo(ml+pw,mt+ph/2);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#64748b';ctx.font='9px monospace';ctx.textAlign='left';
+  ctx.fillText('▲ Hujan RA',ml+4,mt+ph/2-5);
+  ctx.fillText('▼ Infiltrasi f(t)',ml+4,mt+ph/2+11);
+
+  // RA bars
+  ra.forEach((v,i)=>{
+    const x=xOf(i);const bw=pw/pts*.72;
+    const bh=(v/maxRA)*(ph*.42);
+    ctx.fillStyle='rgba(59,130,246,.65)';
+    ctx.fillRect(x-bw/2,mt+ph/2-bh,bw,bh);
+  });
+
+  // Runoff shading
+  ra.forEach((v,i)=>{
+    const rmms=v/60;
+    if(rmms>ft[i]){
+      ctx.fillStyle='rgba(244,63,94,.18)';
+      const bh=(rmms-ft[i])/maxIR*(ph*.5);
+      ctx.fillRect(xOf(i)-pw/pts/2,yIR(rmms),pw/pts,Math.abs(yIR(ft[i])-yIR(rmms)));
+    }
+  });
+
+  // Horton baseline (dashed)
+  ctx.beginPath();
+  for(let i=0;i<pts;i++){const y=yIR(hF(i)/60);if(i===0)ctx.moveTo(xOf(i),y);else ctx.lineTo(xOf(i),y);}
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=1.5;ctx.setLineDash([5,5]);ctx.stroke();ctx.setLineDash([]);
+
+  // fc line
+  ctx.beginPath();ctx.moveTo(ml,yIR(horton.fc/60));ctx.lineTo(ml+pw,yIR(horton.fc/60));
+  ctx.strokeStyle='#d97706';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#d97706';ctx.font='9px monospace';ctx.textAlign='left';
+  ctx.fillText('Ks='+horton.fc.toFixed(2),ml+3,yIR(horton.fc/60)-4);
+
+  // f(t) real-time line
+  ctx.beginPath();ft.forEach((v,i)=>{const y=yIR(v);if(i===0)ctx.moveTo(xOf(i),y);else ctx.lineTo(xOf(i),y);});
+  ctx.strokeStyle='#2dd4bf';ctx.lineWidth=2.5;ctx.stroke();
+
+  // End dot
+  const lv=ft[pts-1];
+  ctx.beginPath();ctx.arc(xOf(pts-1),yIR(lv),5,0,Math.PI*2);
+  ctx.fillStyle='#0f766e';ctx.fill();ctx.strokeStyle='#5eead4';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#ccfbf1';ctx.textAlign='left';ctx.font='bold 9px monospace';
+  ctx.fillText(lv.toFixed(3)+' mm/s',xOf(pts-1)+7,yIR(lv));
+
+  // Y axis (IR)
+  [0,maxIR*.5,maxIR].forEach(v=>{
+    ctx.fillStyle='#64748b';ctx.textAlign='right';ctx.font='9px monospace';
+    ctx.fillText(v.toFixed(3),ml-4,yIR(v)+3);
+  });
+}
+
+// ─── Redraw both main charts ─────────────────────────
+function redrawMain(){ drawSoilChart(); drawInfChart(); }
+
+// ══════════ HORTON FITTING PAGE ══════════════════════
+const DEMO=[{t:0,f:8.5},{t:5,f:6.2},{t:10,f:4.8},{t:15,f:3.6},{t:20,f:2.9},{t:30,f:2.1},{t:45,f:1.4},{t:60,f:1.1},{t:90,f:0.98},{t:120,f:0.96}];
+
+function renderTable(){
+  const tb=document.getElementById('tBody');
+  tb.innerHTML=surveyData.map((r,i)=>`
+    <tr>
+      <td class="py-1.5 pr-2 text-slate-400 text-xs">${i+1}</td>
+      <td class="py-1.5 pr-2">
+        <input type="number" value="${r.t}" min="0" step="1"
+          class="w-20 bg-slate-800 border border-slate-700 rounded-md px-2 py-1 text-sm font-mono text-white focus:outline-none focus:border-cyan-500"
+          onchange="surveyData[${i}].t=parseFloat(this.value)||0"/>
+      </td>
+      <td class="py-1.5 pr-2">
+        <input type="number" value="${r.f}" min="0" step="0.01"
+          class="w-24 bg-slate-800 border border-slate-700 rounded-md px-2 py-1 text-sm font-mono text-white focus:outline-none focus:border-cyan-500"
+          onchange="surveyData[${i}].f=parseFloat(this.value)||0"/>
+      </td>
+      <td class="py-1.5">
+        <button onclick="surveyData.splice(${i},1);renderTable();" class="text-rose-400 hover:text-rose-300 text-xs px-1">✕</button>
+      </td>
+    </tr>`).join('');
+}
+
+function addRow()    { surveyData.push({t:0,f:0}); renderTable(); }
+function loadDemo()  { surveyData=[...DEMO.map(r=>({...r}))]; renderTable(); document.getElementById('fitResult').classList.add('hidden'); document.getElementById('chartEmpty').classList.remove('hidden'); }
+function clearData() { surveyData=[]; renderTable(); document.getElementById('fitResult').classList.add('hidden'); document.getElementById('chartEmpty').classList.remove('hidden'); }
+
+function doFit(){
+  if(surveyData.length<3){alert('Minimal 3 titik data diperlukan.');return;}
+  const fObs=surveyData.map(r=>r.f), tObs=surveyData.map(r=>r.t);
+  const fc=Math.min(...fObs)*.95;
+  let sumT=0,sumY=0,sumT2=0,sumTY=0,n=0;
+  tObs.forEach((t,i)=>{const df=fObs[i]-fc;if(df>1e-6){const y=Math.log(df);sumT+=t;sumY+=y;sumT2+=t*t;sumTY+=t*y;n++;}});
+  const k=-(n*sumTY-sumT*sumY)/(n*sumT2-sumT*sumT)||.05;
+  const f0=Math.exp((sumY-(-k)*sumT)/n)+fc;
+
+  // R²
+  const fPred=tObs.map(t=>fc+(f0-fc)*Math.exp(-k*t));
+  const fMean=fObs.reduce((a,b)=>a+b)/fObs.length;
+  const ssTot=fObs.reduce((a,v)=>a+(v-fMean)**2,0);
+  const ssRes=fObs.reduce((a,v,i)=>a+(v-fPred[i])**2,0);
+  const r2=Math.max(0,1-ssRes/ssTot);
+
+  // Store fitted params
+  horton={f0,fc,k};
+
+  // Display
+  const el=(id,v)=>{document.getElementById(id).innerText=v;};
+  el('f0-val',f0.toFixed(3)+' mm/min'); el('fc-val',fc.toFixed(3)+' mm/min'); el('k-val',k.toFixed(4)+' min⁻¹');
+  el('r2-val',r2.toFixed(4)); el('eq-fc',fc.toFixed(3)); el('eq-f0',f0.toFixed(3)); el('eq-fc2',fc.toFixed(3)); el('eq-k',k.toFixed(4));
+  document.getElementById('fitResult').classList.remove('hidden');
+  document.getElementById('chartEmpty').classList.add('hidden');
+  drawHorton();
+}
+
+function applyBaseline(){
+  goPage('main');
+  setTimeout(()=>{updateKPIs();redrawMain();},100);
+}
+
+function drawHorton(){
+  const{ctx,w,h}=setupCanvas('hortonChart');
+  if(!surveyData.length)return;
+  const ml=54,mr=24,mt=28,mb=38; const pw=w-ml-mr,ph=h-mt-mb;
+  const tMax=Math.max(...surveyData.map(r=>r.t),120);
+  const fMax=Math.max(...surveyData.map(r=>r.f),horton.f0)*1.1;
+  const xOf=t=>ml+(t/tMax)*pw;
+  const yOf=f=>mt+ph-(f/fMax)*ph;
+
+  // Grid
+  [0,.25,.5,.75,1].forEach(r=>{
+    const y=mt+r*ph,x=ml+r*pw;
+    ctx.strokeStyle='#1e293b';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(ml+pw,y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,mt+ph);ctx.stroke();
+    ctx.fillStyle='#475569';ctx.textAlign='right';ctx.font='10px monospace';ctx.fillText((fMax*(1-r)).toFixed(2),ml-5,y+3);
+    ctx.fillStyle='#475569';ctx.textAlign='center';ctx.fillText(Math.round(tMax*r)+'m',x,mt+ph+14);
+  });
+
+  // fc line
+  ctx.beginPath();ctx.moveTo(ml,yOf(horton.fc));ctx.lineTo(ml+pw,yOf(horton.fc));
+  ctx.strokeStyle='#d97706';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#d97706';ctx.font='9px monospace';ctx.textAlign='left';
+  ctx.fillText('fc=Ks='+horton.fc.toFixed(3),ml+4,yOf(horton.fc)-5);
+
+  // Curve + fill
+  const N=200;
+  ctx.beginPath();
+  for(let i=0;i<=N;i++){const t=(i/N)*tMax,fv=horton.fc+(horton.f0-horton.fc)*Math.exp(-horton.k*t);if(i===0)ctx.moveTo(xOf(t),yOf(fv));else ctx.lineTo(xOf(t),yOf(fv));}
+  ctx.lineTo(ml+pw,yOf(horton.fc));ctx.lineTo(ml,yOf(horton.fc));ctx.closePath();
+  ctx.fillStyle='rgba(251,146,60,.1)';ctx.fill();
+  ctx.beginPath();
+  for(let i=0;i<=N;i++){const t=(i/N)*tMax,fv=horton.fc+(horton.f0-horton.fc)*Math.exp(-horton.k*t);if(i===0)ctx.moveTo(xOf(t),yOf(fv));else ctx.lineTo(xOf(t),yOf(fv));}
+  ctx.strokeStyle='#fb923c';ctx.lineWidth=2.5;ctx.stroke();
+
+  // Data dots
+  surveyData.forEach(r=>{
+    const x=xOf(r.t),y=yOf(r.f);
+    ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);
+    ctx.fillStyle='#2563eb';ctx.fill();ctx.strokeStyle='#93c5fd';ctx.lineWidth=1.5;ctx.stroke();
+  });
+
+  // Axis labels
+  ctx.fillStyle='#94a3b8';ctx.textAlign='center';ctx.font='11px sans-serif';
+  ctx.fillText('Waktu (menit)',ml+pw/2,mt+ph+28);
+  ctx.save();ctx.translate(14,mt+ph/2);ctx.rotate(-Math.PI/2);
+  ctx.fillText('f(t) [mm/menit]',0,0);ctx.restore();
+}
+
+// ─── Clock ───────────────────────────────────────────
+function tick(){document.getElementById('clock').innerText=new Date().toLocaleTimeString('id-ID');}
+tick(); setInterval(tick,1000);
+
+// ─── Init ────────────────────────────────────────────
+loadDemo();
+doFit();
+setScenario('normal');
+window.addEventListener('resize',()=>{
+  if(!document.getElementById('page-main').classList.contains('hidden')) redrawMain();
+  else if(surveyData.length) drawHorton();
+});
+</script>
+</body>
+</html>
