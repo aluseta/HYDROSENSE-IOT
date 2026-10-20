@@ -87,6 +87,22 @@ services:
       - ./frontend:/usr/share/nginx/html:ro
     restart: unless-stopped
 
+  # 6. Hardware Field Telemetry Simulator (Run with: docker compose --profile simulator up)
+  simulator:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hydrosense_simulator
+    command: python /app/simulator/mock_publisher.py --broker mosquitto --port 1883 --scenario normal --interval 5 --station all
+    volumes:
+      - ./simulator:/app/simulator:ro
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+    profiles:
+      - simulator
+      - all
+
 volumes:
   timescale_data:
   mosquitto_data:

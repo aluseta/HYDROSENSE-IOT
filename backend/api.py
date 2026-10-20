@@ -32,14 +32,26 @@ app.add_middleware(
 )
 
 
+from contextlib import contextmanager
+import io
+import csv
+from fastapi.responses import StreamingResponse
+
+
+@contextmanager
 def get_db():
-    return psycopg2.connect(
+    conn = psycopg2.connect(
         host=DB_HOST,
         port=DB_PORT,
         dbname=DB_NAME,
         user=DB_USER,
         password=DB_PASSWORD
     )
+    try:
+        yield conn
+    finally:
+        conn.close()
+
 
 
 class HortonDataPoint(BaseModel):
@@ -200,3 +212,79 @@ def get_station_alerts(station_id: str, limit: int = Query(20, ge=1, le=100)):
                 return {"alerts": cur.fetchall()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/api/stations/{station_id}/alerts/{alert_id}/resolve")
+def resolve_station_alert(station_id: str, alert_id: int):
+    """Mark an active EWS alert as resolved by an operator or field researcher."""
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE ews_alerts 
+                    SET is_resolved = TRUE, resolved_at = NOW()
+                    WHERE id = %s AND station_id = %s;
+                    """,
+                    (alert_id, station_id)
+                )
+                if cur.rowcount == 0:
+                    raise HTTPException(status_code=404, detail="Alert not found for this station.")
+            conn.commit()
+        return {"status": "success", "message": f"Alert {alert_id} resolved successfully."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/stations/{station_id}/export")
+def export_telemetry_csv(station_id: str, minutes: int = Query(1440, ge=10, le=43200)):
+    """Export time-series telemetry to CSV for hydrological data analysis."""
+    try:
+        with get_db() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(
+                    """
+                    SELECT 
+                        ts, station_id, pvolt, ptemp, ra, h, ir,
+                        sm_10, sm_20, sm_30, sm_40,
+                        st_10, st_20, st_30, st_40
+                    FROM telemetry
+                    WHERE station_id = %s
+                      AND ts >= NOW() - (%s || ' minutes')::INTERVAL
+                    ORDER BY ts ASC;
+                    """,
+                    (station_id, minutes)
+                )
+                rows = cur.fetchall()
+
+        output = io.StringIO()
+        fieldnames = [
+            "timestamp", "station_id", "pvolt_v", "ptemp_c", "rain_mm_min",
+            "ponding_depth_mm", "infiltration_rate_mm_s",
+            "sm_10cm", "sm_20cm", "sm_30cm", "sm_40cm",
+            "st_10cm", "st_20cm", "st_30cm", "st_40cm"
+        ]
+        writer = csv.writer(output)
+        writer.writerow(fieldnames)
+
+        for r in rows:
+            writer.writerow([
+                r["ts"].isoformat() if hasattr(r["ts"], "isoformat") else str(r["ts"]),
+                station_id,
+                r["pvolt"], r["ptemp"], r["ra"], r["h"], r["ir"],
+                r["sm_10"], r["sm_20"], r["sm_30"], r["sm_40"],
+                r["st_10"], r["st_20"], r["st_30"], r["st_40"]
+            ])
+
+        output.seek(0)
+        filename = f"hydrosense_{station_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv"
+        return StreamingResponse(
+            io.BytesIO(output.getvalue().encode("utf-8")),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

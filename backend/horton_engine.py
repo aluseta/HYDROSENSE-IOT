@@ -8,10 +8,22 @@ import math
 from typing import List, Dict, Tuple, Optional
 
 
+try:
+    import numpy as np
+    from scipy.optimize import curve_fit
+    SCIPY_AVAILABLE = True
+except ImportError:
+    SCIPY_AVAILABLE = False
+
+
+def _horton_func(t, f0, fc, k):
+    return fc + (f0 - fc) * np.exp(-k * t)
+
+
 def fit_horton_curve(data: List[Dict[str, float]]) -> Dict[str, float]:
     """
     Fits Horton's equation: f(t) = fc + (f0 - fc) * exp(-k * t)
-    using linearized least-squares regression: ln(f(t) - fc) = ln(f0 - fc) - k * t.
+    using non-linear least squares (SciPy) with automatic fallback to linearized regression.
 
     :param data: List of dicts [{"t": time_in_minutes, "f": measured_rate_mm_per_min}]
     :return: dict with keys {"f0", "fc", "k", "r_squared"}
@@ -24,12 +36,37 @@ def fit_horton_curve(data: List[Dict[str, float]]) -> Dict[str, float]:
     t_vals = [float(item["t"]) for item in sorted_data]
     f_vals = [float(item["f"]) for item in sorted_data]
 
-    # Initial estimate of fc: slightly below the minimum observed infiltration rate
     min_f = min(f_vals)
-    fc = max(0.01, min_f * 0.95)
-    f0_initial = max(f_vals)
+    max_f = max(f_vals)
 
-    # Linear regression: ln(f - fc) vs t
+    # 1. Try SciPy non-linear curve fitting if available
+    if SCIPY_AVAILABLE and len(t_vals) >= 3:
+        try:
+            t_arr = np.array(t_vals, dtype=float)
+            f_arr = np.array(f_vals, dtype=float)
+            p0 = [max_f, max(0.01, min_f * 0.9), 0.05]
+            bounds = ([min_f * 0.5, 0.001, 0.0001], [max_f * 3.0, max_f, 10.0])
+            popt, _ = curve_fit(_horton_func, t_arr, f_arr, p0=p0, bounds=bounds, maxfev=2000)
+            f0_opt, fc_opt, k_opt = popt
+
+            f_pred = _horton_func(t_arr, f0_opt, fc_opt, k_opt)
+            ss_tot = np.sum((f_arr - np.mean(f_arr)) ** 2)
+            ss_res = np.sum((f_arr - f_pred) ** 2)
+            r2 = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 0.95
+
+            return {
+                "f0": round(float(f0_opt), 4),
+                "fc": round(float(fc_opt), 4),
+                "k": round(float(k_opt), 5),
+                "r_squared": round(float(max(0.0, min(1.0, r2))), 4)
+            }
+        except Exception:
+            pass  # Fallback to linearized regression below
+
+    # 2. Linearized regression fallback: ln(f - fc) vs t
+    fc = max(0.01, min_f * 0.95)
+    f0_initial = max_f
+
     sum_t = 0.0
     sum_y = 0.0
     sum_t2 = 0.0
@@ -47,7 +84,6 @@ def fit_horton_curve(data: List[Dict[str, float]]) -> Dict[str, float]:
             n += 1
 
     if n < 2 or (n * sum_t2 - sum_t * sum_t) == 0:
-        # Fallback heuristic if points are collinear or degenerate
         return {
             "f0": round(f0_initial, 3),
             "fc": round(fc, 3),
@@ -62,21 +98,18 @@ def fit_horton_curve(data: List[Dict[str, float]]) -> Dict[str, float]:
     k = max(0.001, -slope)
     f0 = fc + math.exp(intercept)
 
-    # Compute coefficient of determination (R^2)
     f_mean = sum(f_vals) / len(f_vals)
     ss_tot = sum((f - f_mean) ** 2 for f in f_vals)
-    
     f_pred = [fc + (f0 - fc) * math.exp(-k * t) for t in t_vals]
     ss_res = sum((f_obs - f_p) ** 2 for f_obs, f_p in zip(f_vals, f_pred))
 
     r_squared = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
-    r_squared = max(0.0, min(1.0, r_squared))
 
     return {
         "f0": round(f0, 4),
         "fc": round(fc, 4),
         "k": round(k, 5),
-        "r_squared": round(r_squared, 4)
+        "r_squared": round(max(0.0, min(1.0, r_squared)), 4)
     }
 
 

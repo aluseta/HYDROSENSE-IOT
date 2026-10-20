@@ -2,203 +2,395 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>HydroSense‑IoT · Command Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HydroSense‑IoT · Command Dashboard & EWS Simulator</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    .pulse-dot{animation:pulse-anim 1.8s infinite;}
-    @keyframes pulse-anim{0%{box-shadow:0 0 0 0 rgba(34,197,94,.7);}70%{box-shadow:0 0 0 8px rgba(34,197,94,0);}100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}}
-    .nav-active  {background:rgba(6,182,212,.18);border-color:rgba(6,182,212,.55);color:#22d3ee;}
-    .nav-inactive{background:rgba(30,41,59,.7);border-color:rgba(51,65,85,.5);color:#94a3b8;}
-    .sc-active   {background:rgba(6,182,212,.15);border-color:rgba(6,182,212,.4);color:#22d3ee;}
-    .sc-inactive {background:rgba(30,41,59,.8);border-color:rgba(51,65,85,.6);color:#94a3b8;}
-    input[type=number]::-webkit-inner-spin-button{opacity:.5;}
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .pulse-dot { animation: pulse-anim 1.8s infinite; }
+    @keyframes pulse-anim {
+      0%   { box-shadow: 0 0 0 0 rgba(34,197,94,.7); }
+      70%  { box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+      100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+    }
+    .pulse-danger { animation: pulse-danger 1.5s infinite; }
+    @keyframes pulse-danger {
+      0%   { box-shadow: 0 0 0 0 rgba(244,63,94,.8); }
+      70%  { box-shadow: 0 0 0 10px rgba(244,63,94,0); }
+      100% { box-shadow: 0 0 0 0 rgba(244,63,94,0); }
+    }
+    .nav-active   { background: rgba(6,182,212,.18); border-color: rgba(6,182,212,.55); color: #22d3ee; }
+    .nav-inactive { background: rgba(30,41,59,.7);   border-color: rgba(51,65,85,.5);   color: #94a3b8; }
+    .sc-active    { background: rgba(6,182,212,.18); border-color: rgba(6,182,212,.6);  color: #22d3ee; font-weight: 700; box-shadow: 0 0 12px rgba(6,182,212,.2); }
+    .sc-inactive  { background: rgba(30,41,59,.8);   border-color: rgba(51,65,85,.6);   color: #94a3b8; }
+    input[type=number]::-webkit-inner-spin-button { opacity: .5; }
+    .glass-card {
+      background: linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(30,41,59,0.7) 100%);
+      backdrop-filter: blur(12px);
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 antialiased font-sans min-h-screen">
+<body class="bg-slate-950 text-slate-100 antialiased min-h-screen selection:bg-cyan-500 selection:text-white">
+
+<!-- ══════════ TOAST NOTIFICATION ══════════ -->
+<div id="toast" class="fixed top-20 right-6 z-50 transform transition-all duration-300 translate-x-32 opacity-0 pointer-events-none bg-slate-900/95 border border-cyan-500/50 shadow-2xl shadow-cyan-500/20 rounded-xl px-4 py-3 flex items-center gap-3">
+  <span id="toast-icon" class="text-xl">✅</span>
+  <div>
+    <div id="toast-title" class="text-xs font-bold text-white tracking-wide">Pemberitahuan</div>
+    <div id="toast-msg" class="text-xs text-slate-300 mt-0.5">Operasi berhasil dilakukan.</div>
+  </div>
+</div>
 
 <!-- ══════════ TOP NAVIGATION ══════════ -->
-<nav class="bg-slate-900 border-b border-slate-800 px-4 md:px-6 py-3 sticky top-0 z-50 shadow-xl">
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+<nav class="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 md:px-6 py-3 sticky top-0 z-40 shadow-2xl">
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
 
-    <!-- Brand -->
+    <!-- Brand & Collaboration -->
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 bg-gradient-to-tr from-cyan-600 to-blue-500 rounded-xl flex items-center justify-center text-lg shadow-md shadow-cyan-500/20">💧</div>
+      <div class="w-10 h-10 bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-500 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-cyan-500/25 border border-cyan-400/30">💧</div>
       <div>
-        <span class="font-bold text-white text-base tracking-tight">HydroSense‑IoT</span>
-        <span class="text-cyan-400 text-base"> · EWS Command Center</span>
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-white text-base tracking-tight">HydroSense‑IoT</span>
+          <span class="text-cyan-400 text-xs px-2 py-0.5 rounded-full bg-cyan-950/70 border border-cyan-800/60 font-mono font-medium">EWS R&D v1.2</span>
+        </div>
+        <div class="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+          <span>Riset Kolaborasi <strong>ITB</strong> & <strong>PT MANVIS</strong></span>
+          <span class="text-slate-600">•</span>
+          <span id="station-soil-badge" class="text-amber-400 font-mono">Sandy Clay Loam</span>
+        </div>
       </div>
     </div>
 
-    <!-- Page tabs -->
+    <!-- Page Switcher Tabs -->
     <div class="flex items-center gap-2">
-      <button id="nav-main"   onclick="goPage('main')"   class="nav-btn text-xs px-4 py-2 rounded-lg border font-semibold transition nav-active">📡 Dashboard Utama</button>
-      <button id="nav-horton" onclick="goPage('horton')" class="nav-btn text-xs px-4 py-2 rounded-lg border font-semibold transition nav-inactive">🔬 Survey & Fitting Horton</button>
+      <button id="nav-main" onclick="goPage('main')" class="nav-btn text-xs px-4 py-2 rounded-xl border font-semibold transition flex items-center gap-1.5 nav-active">
+        <span>📡</span> <span>Dashboard Utama</span>
+      </button>
+      <button id="nav-horton" onclick="goPage('horton')" class="nav-btn text-xs px-4 py-2 rounded-xl border font-semibold transition flex items-center gap-1.5 nav-inactive">
+        <span>🔬</span> <span>Survey & Fitting Horton</span>
+      </button>
     </div>
 
-    <!-- Live status -->
-    <div class="flex items-center gap-3 text-xs">
-      <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl">
-        <select id="stationSel" class="bg-transparent text-white text-xs font-medium focus:outline-none cursor-pointer">
-          <option class="bg-slate-800">HS-CTM-01 · Citarum Hulu</option>
-          <option class="bg-slate-800">HS-JTG-02 · Jatinangor</option>
-          <option class="bg-slate-800">HS-GRT-03 · Garut</option>
+    <!-- Station Switcher, Live Mode & Status -->
+    <div class="flex flex-wrap items-center gap-2 text-xs">
+      
+      <!-- Station Selector -->
+      <div class="flex items-center gap-1.5 bg-slate-800/80 border border-slate-700/80 px-3 py-1.5 rounded-xl shadow-sm">
+        <span class="text-slate-400">📍</span>
+        <select id="stationSel" onchange="onStationChange(this.value)" class="bg-transparent text-white text-xs font-semibold focus:outline-none cursor-pointer">
+          <option value="HS-CTM-01" class="bg-slate-900 text-white">HS-CTM-01 · DAS Citarum Hulu</option>
+          <option value="HS-JTG-02" class="bg-slate-900 text-white">HS-JTG-02 · DAS Jatinangor ITB</option>
+          <option value="HS-GRT-03" class="bg-slate-900 text-white">HS-GRT-03 · DAS Garut Cimanuk</option>
         </select>
       </div>
-      <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
-        <span class="text-emerald-400 font-mono font-semibold">LIVE</span>
-        <span class="text-slate-500">|</span>
-        <span class="font-mono text-slate-300" id="clock">--:--:--</span>
+
+      <!-- Mode Toggle: Demo Simulation vs Live API -->
+      <button id="btn-mode-toggle" onclick="toggleServerMode()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-semibold transition text-xs bg-emerald-950/40 border-emerald-600/50 text-emerald-300 hover:bg-emerald-900/40">
+        <span id="mode-icon">🟢</span>
+        <span id="mode-text">Mode Simulasi (Demo)</span>
+      </button>
+
+      <!-- CSV Export Button -->
+      <button onclick="handleExportData()" title="Unduh data telemetri CSV" class="flex items-center gap-1 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1.5 rounded-xl transition text-xs">
+        <span>📥</span> <span>CSV</span>
+      </button>
+
+      <!-- Live Heartbeat & Clock -->
+      <div class="flex items-center gap-2 bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-xl font-mono text-slate-300">
+        <span id="heartbeat-dot" class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+        <span id="heartbeat-text" class="text-emerald-400 font-bold">LIVE</span>
+        <span class="text-slate-600">|</span>
+        <span id="clock" class="text-slate-200">--:--:--</span>
       </div>
+
     </div>
   </div>
 
-  <!-- Scenario bar (only shown on main page) -->
-  <div id="scenario-bar" class="mt-3 pt-3 border-t border-slate-800 flex flex-wrap gap-2 items-center">
-    <span class="text-xs text-slate-400">⚙️ Skenario:</span>
-    <button onclick="setScenario('normal')"     id="sc-normal"     class="sc text-xs px-3 py-1.5 rounded-lg border font-medium transition sc-active">☀️ Normal</button>
-    <button onclick="setScenario('flashflood')" id="sc-flashflood" class="sc text-xs px-3 py-1.5 rounded-lg border font-medium transition sc-inactive">⛈️ Banjir Hortonian</button>
-    <button onclick="setScenario('landslide')"  id="sc-landslide"  class="sc text-xs px-3 py-1.5 rounded-lg border font-medium transition sc-inactive">⛰️ Risiko Longsor</button>
-    <button onclick="setScenario('drought')"    id="sc-drought"    class="sc text-xs px-3 py-1.5 rounded-lg border font-medium transition sc-inactive">🌾 Kemarau</button>
+  <!-- Scenario & Simulation Control Bar (Main Page) -->
+  <div id="scenario-bar" class="mt-3 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+    
+    <!-- Weather Scenarios -->
+    <div class="flex flex-wrap gap-2 items-center">
+      <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">⚙️ Skenario Bencana:</span>
+      <button onclick="setScenario('normal')"     id="sc-normal"     class="sc text-xs px-3 py-1.5 rounded-lg border transition sc-active">☀️ Normal</button>
+      <button onclick="setScenario('flashflood')" id="sc-flashflood" class="sc text-xs px-3 py-1.5 rounded-lg border transition sc-inactive">⛈️ Banjir Hortonian</button>
+      <button onclick="setScenario('landslide')"  id="sc-landslide"  class="sc text-xs px-3 py-1.5 rounded-lg border transition sc-inactive">⛰️ Risiko Longsor</button>
+      <button onclick="setScenario('drought')"    id="sc-drought"    class="sc text-xs px-3 py-1.5 rounded-lg border transition sc-inactive">🌾 Kemarau Kritis</button>
+    </div>
+
+    <!-- Playback Controls -->
+    <div class="flex items-center gap-2 text-xs">
+      <span class="text-slate-400 text-[11px] hidden sm:inline">Kontrol Animasi:</span>
+      <button id="btn-play-pause" onclick="togglePlayPause()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium transition flex items-center gap-1">
+        <span id="play-pause-icon">⏸️</span> <span id="play-pause-text">Jeda</span>
+      </button>
+      <button onclick="stepSimulation()" title="Maju 1 langkah waktu" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition">
+        ⏩ +1 Menit
+      </button>
+      <button onclick="resetSimulation()" title="Kembali ke kondisi awal" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition">
+        🔄 Reset
+      </button>
+      <div class="text-[11px] text-cyan-400 bg-cyan-950/40 border border-cyan-800/40 px-2 py-0.5 rounded-md font-mono">
+        Interval: <span id="sim-speed-val">2.5s</span>
+      </div>
+    </div>
+
   </div>
 </nav>
 
-<!-- ══════════ PAGE: DASHBOARD UTAMA ══════════ -->
+<!-- ══════════ PAGE 1: DASHBOARD UTAMA ══════════ -->
 <div id="page-main" class="p-4 md:p-6 space-y-5">
 
-  <!-- KPI CARDS -->
+  <!-- KPI CARDS ROW -->
   <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
-      <div class="text-xs text-slate-400 mb-1.5">⚡ PVolt</div>
-      <div class="text-xl font-bold font-mono" id="kpi-pvolt">–</div>
-      <div class="mt-2 h-1.5 bg-slate-800 rounded-full"><div id="bar-pvolt" class="h-full rounded-full transition-all bg-emerald-500"></div></div>
-      <div class="text-xs mt-1" id="sub-pvolt">–</div>
+    
+    <!-- PVolt -->
+    <div class="glass-card border border-slate-800 rounded-2xl p-3.5 shadow-lg relative overflow-hidden">
+      <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+        <span class="font-medium">⚡ Tegangan Aki (PVolt)</span>
+      </div>
+      <div class="text-2xl font-bold font-mono tracking-tight" id="kpi-pvolt">–</div>
+      <div class="mt-2.5 h-1.5 bg-slate-800/80 rounded-full overflow-hidden">
+        <div id="bar-pvolt" class="h-full rounded-full transition-all duration-500 bg-emerald-500" style="width:75%"></div>
+      </div>
+      <div class="text-xs mt-1.5 font-medium flex justify-between" id="sub-pvolt">
+        <span class="text-emerald-400">Normal (75%)</span>
+        <span class="text-slate-500 font-mono">LiFePO₄</span>
+      </div>
     </div>
-    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
-      <div class="text-xs text-slate-400 mb-1.5">🌡️ PTemp</div>
-      <div class="text-xl font-bold font-mono" id="kpi-ptemp">–</div>
-      <div class="text-xs text-slate-500 mt-3">Max: 50°C</div>
+
+    <!-- PTemp -->
+    <div class="glass-card border border-slate-800 rounded-2xl p-3.5 shadow-lg">
+      <div class="text-xs text-slate-400 mb-1.5 font-medium">🌡️ Suhu Enclosure (PTemp)</div>
+      <div class="text-2xl font-bold font-mono tracking-tight" id="kpi-ptemp">–</div>
+      <div class="text-xs text-slate-500 mt-2.5 flex items-center justify-between">
+        <span>Batas Aman: 50°C</span>
+        <span id="ptemp-badge" class="text-emerald-400 font-semibold">Normal</span>
+      </div>
     </div>
-    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
-      <div class="text-xs text-slate-400 mb-1.5">🌧️ Curah Hujan (RA)</div>
-      <div class="text-xl font-bold font-mono text-cyan-400" id="kpi-ra">–</div>
-      <div class="text-xs text-slate-500 mt-1">24h: <span id="kpi-ra24" class="text-white font-mono">–</span></div>
+
+    <!-- RA -->
+    <div class="glass-card border border-slate-800 rounded-2xl p-3.5 shadow-lg">
+      <div class="text-xs text-slate-400 mb-1.5 font-medium">🌧️ Curah Hujan (RA)</div>
+      <div class="text-2xl font-bold font-mono text-cyan-400 tracking-tight" id="kpi-ra">–</div>
+      <div class="text-xs text-slate-400 mt-2 flex items-center justify-between">
+        <span>Akumulasi 24h:</span>
+        <span id="kpi-ra24" class="text-white font-mono font-bold">–</span>
+      </div>
     </div>
-    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
-      <div class="text-xs text-slate-400 mb-1.5">💧 Genangan (H)</div>
-      <div class="text-xl font-bold font-mono text-blue-400" id="kpi-h">–</div>
-      <div class="text-xs text-slate-500 mt-1">di ring infiltrometer</div>
+
+    <!-- Infiltrometer Ponding H -->
+    <div class="glass-card border border-slate-800 rounded-2xl p-3.5 shadow-lg">
+      <div class="text-xs text-slate-400 mb-1.5 font-medium">💧 Genangan Infiltrometer (H)</div>
+      <div class="text-2xl font-bold font-mono text-blue-400 tracking-tight" id="kpi-h">–</div>
+      <div class="text-xs text-slate-500 mt-2 flex items-center justify-between">
+        <span>Weir Pelimpah: 35 mm</span>
+        <span id="h-status-badge" class="text-slate-400">Kering</span>
+      </div>
     </div>
-    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
-      <div class="text-xs text-slate-400 mb-1.5">⏳ Infiltrasi (IR)</div>
-      <div class="text-xl font-bold font-mono text-teal-400" id="kpi-ir">–</div>
-      <div class="text-xs mt-1" id="kpi-phase">–</div>
+
+    <!-- Infiltration Rate f(t) -->
+    <div class="glass-card border border-slate-800 rounded-2xl p-3.5 shadow-lg">
+      <div class="text-xs text-slate-400 mb-1.5 font-medium">⏳ Laju Infiltrasi f(t)</div>
+      <div class="text-2xl font-bold font-mono text-teal-400 tracking-tight" id="kpi-ir">–</div>
+      <div class="text-xs mt-2" id="kpi-phase">
+        <span class="text-emerald-400 font-medium">Fase 1 · Pra-genangan</span>
+      </div>
     </div>
-    <div id="ews-card" class="bg-slate-900 border border-emerald-500/40 rounded-xl p-3.5">
-      <div class="text-xs text-slate-400 mb-1.5">🛡️ EWS Status</div>
-      <div class="font-bold text-base" id="ews-title">–</div>
-      <div class="text-xs text-slate-400 mt-1 line-clamp-2" id="ews-sub">–</div>
+
+    <!-- EWS Main Badge Card -->
+    <div id="ews-card" class="glass-card border border-emerald-500/40 rounded-2xl p-3.5 shadow-lg transition-all duration-300">
+      <div class="text-xs text-slate-400 mb-1.5 font-medium flex items-center justify-between">
+        <span>🛡️ Status EWS Terintegrasi</span>
+        <span id="ews-pulse-indicator" class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+      </div>
+      <div class="font-extrabold text-base tracking-tight" id="ews-title">NORMAL</div>
+      <div class="text-xs text-slate-300 mt-1 line-clamp-2 leading-relaxed" id="ews-sub">Semua parameter DAS dalam ambang batas aman.</div>
     </div>
+
   </section>
 
-  <!-- MAIN PANEL: 40% Soil Profile | 60% Infiltration -->
+  <!-- UNIFIED MAIN GRID (40% Soil Profile | 60% Infiltration & Hyetograph) -->
   <section class="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
-    <!-- LEFT: Soil Profile (SM + ST combined vertical, 2/5) -->
-    <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+    <!-- LEFT: Profil Tanah Gabungan (SM & ST, 2/5 columns) -->
+    <div class="lg:col-span-2 glass-card border border-slate-800 rounded-2xl p-5 shadow-xl">
       <div class="flex items-start justify-between mb-3">
         <div>
-          <h2 class="font-bold text-white text-sm flex items-center gap-2">🪵 Profil Tanah (SM & ST)</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Kedalaman ↓ | <span class="text-blue-400">SM%</span> (bawah) · <span class="text-orange-400">ST°C</span> (atas)</p>
+          <h2 class="font-bold text-white text-sm flex items-center gap-2">
+            <span>🪵</span> Profil Tanah Vertikal Gabungan (SM & ST)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Kedalaman Vertikal (0 s.d. −40 cm) · <span class="text-blue-400 font-semibold">SM%</span> (Sumbu Bawah) · <span class="text-orange-400 font-semibold">ST°C</span> (Sumbu Atas)
+          </p>
         </div>
-        <div class="flex flex-col gap-1 text-[10px] text-slate-400 shrink-0">
-          <span class="flex items-center gap-1.5"><span class="w-5 h-2.5 rounded-sm bg-blue-500/60"></span>SM (%)</span>
-          <span class="flex items-center gap-1.5"><span class="w-5 h-0.5 bg-orange-400"></span>ST (°C)</span>
+        <div class="flex flex-col gap-1 text-[10px] text-slate-400 shrink-0 bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
+          <span class="flex items-center gap-1.5"><span class="w-4 h-2 rounded-sm bg-blue-500/70"></span> Kelembaban (SM %)</span>
+          <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-orange-400"></span> Suhu Tanah (ST °C)</span>
         </div>
       </div>
-      <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2" style="height:355px">
+      
+      <!-- Canvas Container -->
+      <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-2 relative shadow-inner" style="height:370px">
         <canvas id="soilChart" class="w-full h-full"></canvas>
+      </div>
+
+      <!-- Soil Profile Analytical Summary -->
+      <div class="mt-3 grid grid-cols-4 gap-2 text-center text-xs">
+        <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-1.5">
+          <div class="text-[10px] text-slate-400">10 cm (Top)</div>
+          <div class="font-mono font-bold text-blue-400 text-sm" id="sm-val-10">–</div>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-1.5">
+          <div class="text-[10px] text-slate-400">20 cm</div>
+          <div class="font-mono font-bold text-blue-400 text-sm" id="sm-val-20">–</div>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-1.5">
+          <div class="text-[10px] text-slate-400">30 cm (Slip)</div>
+          <div class="font-mono font-bold text-blue-400 text-sm" id="sm-val-30">–</div>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-1.5">
+          <div class="text-[10px] text-slate-400">40 cm (Deep)</div>
+          <div class="font-mono font-bold text-blue-400 text-sm" id="sm-val-40">–</div>
+        </div>
       </div>
     </div>
 
-    <!-- RIGHT: Infiltration Chart (3/5) -->
-    <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+    <!-- RIGHT: Hujan (RA) & Laju Infiltrasi f(t) (3/5 columns) -->
+    <div class="lg:col-span-3 glass-card border border-slate-800 rounded-2xl p-5 shadow-xl">
       <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
         <div>
-          <h2 class="font-bold text-white text-sm flex items-center gap-2">📉 Hujan (RA) & Laju Infiltrasi f(t)</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Hyetograph terbalik (atas) · f(t) sensor (solid) · Horton baseline (dashed) · Zona limpasan (merah)</p>
+          <h2 class="font-bold text-white text-sm flex items-center gap-2">
+            <span>📉</span> Dinamika Presipitasi (RA) & Laju Infiltrasi f(t)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Hyetograph terbalik (atas) · f(t) sensor (solid) · Horton baseline (putus-putus) · Limpasan (arsiran merah)
+          </p>
         </div>
-        <div class="flex flex-wrap gap-2 text-[10px] shrink-0">
-          <span class="flex items-center gap-1"><span class="w-4 h-3 bg-blue-500/60 rounded-sm"></span>RA</span>
-          <span class="flex items-center gap-1"><span class="w-4 h-0.5 bg-teal-400"></span>f(t)</span>
-          <span class="flex items-center gap-1"><span class="w-4 border-t border-dashed border-slate-400"></span>Horton</span>
-          <span class="flex items-center gap-1"><span class="w-4 h-2.5 bg-rose-500/30 rounded-sm"></span>Limpasan</span>
+        
+        <!-- Legend -->
+        <div class="flex flex-wrap gap-2 text-[10px] shrink-0 bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
+          <span class="flex items-center gap-1"><span class="w-3.5 h-2.5 bg-blue-500/70 rounded-xs"></span>RA</span>
+          <span class="flex items-center gap-1"><span class="w-3.5 h-0.5 bg-teal-400"></span>f(t)</span>
+          <span class="flex items-center gap-1"><span class="w-3.5 border-t border-dashed border-slate-400"></span>Horton Baseline</span>
+          <span class="flex items-center gap-1"><span class="w-3.5 h-2.5 bg-rose-500/35 rounded-xs"></span>Limpasan (Runoff)</span>
         </div>
       </div>
 
-      <!-- Phase indicator pills -->
-      <div class="flex flex-wrap gap-1.5 mb-3" id="phase-pills">
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-900/50 border border-emerald-700/40 text-emerald-300">Fase 1: f(t)=I(t)</span>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-900/50 border border-blue-700/40 text-blue-300">Fase 2: f(t)=I−ΔH/Δt</span>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-900/50 border border-purple-700/40 text-purple-300">Fase 3: Ks=−ΔH/Δt</span>
+      <!-- Phase Indicator Pills -->
+      <div class="flex flex-wrap gap-2 mb-3" id="phase-pills">
+        <span id="pill-p1" class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-600/50 text-emerald-300 font-medium transition">
+          Fase 1: Pra-genangan [ f(t) = I(t) ]
+        </span>
+        <span id="pill-p2" class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-400 font-medium transition">
+          Fase 2: Genangan Aktif [ f(t) = I − ΔH/Δt ]
+        </span>
+        <span id="pill-p3" class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-800/60 border border-slate-700/60 text-slate-400 font-medium transition">
+          Fase 3: Post-Hujan [ Ks = −ΔH/Δt ]
+        </span>
       </div>
 
-      <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2" style="height:280px">
+      <!-- Canvas Container -->
+      <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-2 relative shadow-inner" style="height:275px">
         <canvas id="infChart" class="w-full h-full"></canvas>
       </div>
 
-      <!-- Horton state connector -->
-      <div class="mt-3 bg-slate-950/50 border border-slate-800 rounded-xl p-3 text-xs flex flex-wrap gap-4 items-center">
-        <div>
-          <span class="text-slate-400">Posisi Horton saat ini:</span>
-          <span class="ml-1 font-mono text-teal-400 font-bold" id="horton-pos">–</span>
+      <!-- Horton State Connector Footer -->
+      <div class="mt-3 bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 text-xs flex flex-wrap gap-4 items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400">Posisi Horton Saat Ini:</span>
+          <span class="font-mono text-teal-400 font-bold" id="horton-pos">–</span>
         </div>
-        <div>
-          <span class="text-slate-400">Ks survey:</span>
-          <span class="ml-1 font-mono text-amber-400 font-bold" id="ks-survey-lbl">0.96 mm/min</span>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400">Ks Acuan Survey:</span>
+          <span class="font-mono text-amber-400 font-bold" id="ks-survey-lbl">0.960 mm/min</span>
         </div>
-        <div>
-          <span class="text-slate-400">Ks real-time:</span>
-          <span class="ml-1 font-mono text-purple-400 font-bold" id="ks-rt-lbl">–</span>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400">Laju f(t) Aktual:</span>
+          <span class="font-mono text-purple-400 font-bold" id="ks-rt-lbl">–</span>
         </div>
-        <div>
-          <span class="text-slate-400">Selisih:</span>
-          <span class="ml-1 font-mono text-cyan-400 font-bold" id="ks-delta-lbl">–</span>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400">Selisih Drift:</span>
+          <span class="font-mono text-cyan-400 font-bold" id="ks-delta-lbl">–</span>
         </div>
       </div>
+
     </div>
   </section>
 
-  <!-- EWS MATRIX -->
-  <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-    <h2 class="font-bold text-white text-sm mb-3 flex items-center gap-2">🛡️ Matriks Peringatan Dini (Early Warning System)</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+  <!-- EWS EXPLAINABLE MATRIX -->
+  <section class="glass-card border border-slate-800 rounded-2xl p-5 shadow-xl">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h2 class="font-bold text-white text-sm flex items-center gap-2">
+          <span>🛡️</span> Matriks Peringatan Dini (Early Warning System) Berbasis Fisika Hidrologi
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5">
+          Deteksi otomatis 3 jenis bencana hidrometeorologi berdasarkan ambang batas matematis sensor terintegrasi.
+        </p>
+      </div>
+      <span class="text-[11px] text-cyan-400 bg-cyan-950/50 border border-cyan-800/60 px-2.5 py-1 rounded-lg font-mono">
+        Evaluasi Siklus: Tiap 1 Menit
+      </span>
+    </div>
 
-      <div id="ews-flood" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 flex items-start gap-3 transition-all">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+      <!-- Alert 1: Flash Flood -->
+      <div id="ews-flood" class="p-4 rounded-xl border border-slate-800 bg-slate-950/60 flex items-start gap-3.5 transition-all duration-300">
         <span id="badge-flood" class="text-2xl mt-0.5">🟢</span>
-        <div>
-          <div class="font-semibold text-sm text-white">Banjir Bandang (Hortonian)</div>
-          <div class="text-xs text-slate-400 mt-1" id="desc-flood">Intensitas hujan di bawah kapasitas infiltrasi tanah. Tidak ada limpasan kritis.</div>
-          <div class="mt-2 text-[10px] font-mono text-slate-500">Kondisi: RA vs f(t) · SM lapisan atas</div>
+        <div class="flex-1">
+          <div class="flex items-center justify-between">
+            <div class="font-bold text-sm text-white">Banjir Bandang (Hortonian)</div>
+            <span id="tag-flood" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">AMAN</span>
+          </div>
+          <div class="text-xs text-slate-300 mt-1 leading-relaxed" id="desc-flood">
+            Intensitas hujan di bawah kapasitas infiltrasi tanah. Seluruh air terserap ke pori tanah, tidak ada limpasan kritis.
+          </div>
+          <div class="mt-2.5 pt-2 border-t border-slate-800/70 text-[10px] font-mono text-slate-400 flex justify-between">
+            <span>Kondisi: RA &gt; f(t) & SM₁₀ &ge; 85%</span>
+            <span class="text-cyan-400" id="metric-flood">Genangan: 0 mm</span>
+          </div>
         </div>
       </div>
 
-      <div id="ews-slide" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 flex items-start gap-3 transition-all">
+      <!-- Alert 2: Landslide -->
+      <div id="ews-slide" class="p-4 rounded-xl border border-slate-800 bg-slate-950/60 flex items-start gap-3.5 transition-all duration-300">
         <span id="badge-slide" class="text-2xl mt-0.5">🟢</span>
-        <div>
-          <div class="font-semibold text-sm text-white">Longsor Dangkal</div>
-          <div class="text-xs text-slate-400 mt-1" id="desc-slide">Tekanan air pori lapisan 30–40 cm dalam ambang aman.</div>
-          <div class="mt-2 text-[10px] font-mono text-slate-500">Kondisi: SM 30cm + SM 40cm · Iverson pore pressure</div>
+        <div class="flex-1">
+          <div class="flex items-center justify-between">
+            <div class="font-bold text-sm text-white">Longsor Dangkal (Lereng)</div>
+            <span id="tag-slide" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">AMAN</span>
+          </div>
+          <div class="text-xs text-slate-300 mt-1 leading-relaxed" id="desc-slide">
+            Tekanan air pori pada horizon bidang gelincir (30–40 cm) berada dalam batas stabilitas lereng yang aman.
+          </div>
+          <div class="mt-2.5 pt-2 border-t border-slate-800/70 text-[10px] font-mono text-slate-400 flex justify-between">
+            <span>Kondisi: SM₃₀ & SM₄₀ &ge; 90%</span>
+            <span class="text-cyan-400" id="metric-slide">SM Lapisan Bawah: Aman</span>
+          </div>
         </div>
       </div>
 
-      <div id="ews-drought" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 flex items-start gap-3 transition-all">
+      <!-- Alert 3: Drought -->
+      <div id="ews-drought" class="p-4 rounded-xl border border-slate-800 bg-slate-950/60 flex items-start gap-3.5 transition-all duration-300">
         <span id="badge-drought" class="text-2xl mt-0.5">🟢</span>
-        <div>
-          <div class="font-semibold text-sm text-white">Kekeringan Agrikultur</div>
-          <div class="text-xs text-slate-400 mt-1" id="desc-drought">Kelembaban di atas titik layu permanen (PWP ≈ 15%).</div>
-          <div class="mt-2 text-[10px] font-mono text-slate-500">Kondisi: SM rata-rata &lt; PWP · 0 RA &gt; 3 hari</div>
+        <div class="flex-1">
+          <div class="flex items-center justify-between">
+            <div class="font-bold text-sm text-white">Kekeringan Agrikultur</div>
+            <span id="tag-drought" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">AMAN</span>
+          </div>
+          <div class="text-xs text-slate-300 mt-1 leading-relaxed" id="desc-drought">
+            Kelembaban profil tanah di atas Titik Layu Permanen (Permanent Wilting Point, PWP ≈ 15%). Kebutuhan tanaman tercukupi.
+          </div>
+          <div class="mt-2.5 pt-2 border-t border-slate-800/70 text-[10px] font-mono text-slate-400 flex justify-between">
+            <span>Kondisi: SM Rerata &le; 15% (Defisit)</span>
+            <span class="text-cyan-400" id="metric-drought">SMDI: Cukup</span>
+          </div>
         </div>
       </div>
 
@@ -208,536 +400,1063 @@
 </div><!-- /page-main -->
 
 
-<!-- ══════════ PAGE: HORTON FITTING ══════════ -->
+<!-- ══════════ PAGE 2: HORTON SURVEY & FITTING (ASTM D3385) ══════════ -->
 <div id="page-horton" class="hidden p-4 md:p-6 space-y-5">
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-    <!-- INPUT FORM -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <h2 class="font-bold text-white text-base mb-1 flex items-center gap-2">📋 Data Survey Lapangan — Double-Ring Infiltrometer</h2>
-      <p class="text-xs text-slate-400 mb-4">
-        Masukkan pasangan <strong class="text-white">waktu (menit)</strong> dan <strong class="text-white">laju infiltrasi f(t) terukur (mm/menit)</strong>
-        dari uji ASTM D3385 di lapangan. Fitting otomatis menggunakan metode Horton linearisasi.
-      </p>
+    <!-- INPUT DATA & CALIBRATION FORM -->
+    <div class="glass-card border border-slate-800 rounded-2xl p-5 shadow-xl">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <h2 class="font-bold text-white text-base flex items-center gap-2">
+            <span>📋</span> Uji Infiltrasi Lapangan ASTM D3385 (Double-Ring)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Input pasangan data waktu uji ($t$ menit) dan laju infiltrasi terukur ($f$ mm/menit) untuk kalibrasi model Horton.
+          </p>
+        </div>
+        <span class="text-xs px-2.5 py-1 rounded-lg bg-teal-950/60 border border-teal-700/50 text-teal-300 font-mono">
+          ASTM D3385
+        </span>
+      </div>
 
-      <div class="overflow-x-auto mb-3">
+      <!-- Survey Presets -->
+      <div class="mb-4 bg-slate-950/70 border border-slate-800/80 rounded-xl p-3">
+        <div class="text-xs text-slate-400 font-semibold mb-2">📂 Pilih Data Survei Lapangan Lapangan:</div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadPreset('citarum')"   class="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-200 transition font-medium">📍 DAS Citarum Hulu (27 Sep 2026)</button>
+          <button onclick="loadPreset('jatinangor')" class="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-200 transition font-medium">📍 Lereng Jatinangor (1 Okt 2026)</button>
+          <button onclick="loadPreset('garut')"      class="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-200 transition font-medium">📍 DAS Garut Vulkanik (3 Okt 2026)</button>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="overflow-x-auto max-h-72 overflow-y-auto mb-3 pr-1 border border-slate-800/80 rounded-xl bg-slate-950/50">
         <table class="w-full text-sm">
-          <thead>
-            <tr class="text-xs text-slate-400 border-b border-slate-800">
-              <th class="text-left pb-2 pr-2 w-8">No</th>
-              <th class="text-left pb-2 pr-2">Waktu (menit)</th>
-              <th class="text-left pb-2 pr-2">f(t) (mm/menit)</th>
-              <th class="pb-2 w-8"></th>
+          <thead class="sticky top-0 bg-slate-900 border-b border-slate-800 z-10">
+            <tr class="text-xs text-slate-400">
+              <th class="text-left py-2 px-3 w-10">No</th>
+              <th class="text-left py-2 px-3">Waktu t (menit)</th>
+              <th class="text-left py-2 px-3">Laju Infiltrasi f(t) (mm/menit)</th>
+              <th class="py-2 px-3 w-10 text-center">Aksi</th>
             </tr>
           </thead>
-          <tbody id="tBody" class="divide-y divide-slate-800/50"></tbody>
+          <tbody id="tBody" class="divide-y divide-slate-800/40"></tbody>
         </table>
       </div>
 
-      <div class="flex flex-wrap gap-2">
-        <button onclick="addRow()"    class="text-xs px-3 py-1.5 bg-cyan-900/40 border border-cyan-700/50 text-cyan-300 rounded-lg hover:bg-cyan-800/40 transition font-medium">+ Tambah Baris</button>
-        <button onclick="doFit()"     class="text-xs px-4 py-1.5 bg-teal-700 hover:bg-teal-600 text-white rounded-lg transition font-semibold">🔍 Fit Kurva Horton</button>
-        <button onclick="loadDemo()"  class="text-xs px-3 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg hover:bg-slate-700 transition">📂 Load Data Demo</button>
-        <button onclick="clearData()" class="text-xs px-3 py-1.5 bg-rose-900/30 border border-rose-700/40 text-rose-300 rounded-lg hover:bg-rose-900/50 transition">🗑 Hapus Semua</button>
-      </div>
-
-      <!-- Result panel -->
-      <div id="fitResult" class="hidden mt-5 bg-slate-950/60 border border-teal-700/40 rounded-xl p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-bold text-teal-400 flex items-center gap-2">✅ Hasil Fitting</h3>
-          <span class="text-xs text-slate-400">R² = <span id="r2-val" class="text-emerald-400 font-bold font-mono">–</span></span>
-        </div>
-        <div class="grid grid-cols-3 gap-2 mb-3">
-          <div class="bg-slate-900 rounded-lg p-2.5 text-center">
-            <div class="text-[10px] text-slate-400 mb-1">f₀ (Awal)</div>
-            <div class="text-base font-bold font-mono text-amber-400" id="f0-val">–</div>
-            <div class="text-[10px] text-slate-500">mm/min</div>
-          </div>
-          <div class="bg-slate-900 rounded-lg p-2.5 text-center">
-            <div class="text-[10px] text-slate-400 mb-1">fc = Ks</div>
-            <div class="text-base font-bold font-mono text-teal-400" id="fc-val">–</div>
-            <div class="text-[10px] text-slate-500">mm/min</div>
-          </div>
-          <div class="bg-slate-900 rounded-lg p-2.5 text-center">
-            <div class="text-[10px] text-slate-400 mb-1">k (Decay)</div>
-            <div class="text-base font-bold font-mono text-purple-400" id="k-val">–</div>
-            <div class="text-[10px] text-slate-500">min⁻¹</div>
-          </div>
-        </div>
-        <div class="bg-slate-900 rounded-lg p-2.5 mb-3 font-mono text-xs text-slate-300 text-center">
-          f(t) = <span class="text-teal-400" id="eq-fc">–</span> + (<span class="text-amber-400" id="eq-f0">–</span> − <span class="text-teal-400" id="eq-fc2">–</span>)·e<sup>−<span class="text-purple-400" id="eq-k">–</span>·t</sup>
-        </div>
-        <button onclick="applyBaseline()" class="w-full text-xs py-2 bg-teal-700 hover:bg-teal-600 text-white rounded-lg font-semibold transition">
-          📡 Terapkan sebagai Baseline ke Dashboard Utama
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button onclick="addRow()"    class="text-xs px-3 py-2 bg-cyan-950/50 border border-cyan-700/60 text-cyan-300 rounded-xl hover:bg-cyan-900/50 transition font-semibold flex items-center gap-1">
+          <span>+</span> <span>Tambah Baris</span>
+        </button>
+        <button onclick="doFit()"     class="text-xs px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl transition font-bold flex items-center gap-1.5 shadow-lg shadow-teal-500/20">
+          <span>🔍</span> <span>Fit Kurva Horton</span>
+        </button>
+        <button onclick="clearData()" class="text-xs px-3 py-2 bg-rose-950/40 border border-rose-700/50 text-rose-300 rounded-xl hover:bg-rose-900/50 transition font-medium">
+          🗑 Bersihkan Tabel
         </button>
       </div>
 
-      <!-- Info box -->
-      <div class="mt-4 bg-blue-950/30 border border-blue-800/40 rounded-xl p-3 text-xs text-blue-200 space-y-1">
-        <div class="font-semibold text-blue-300 mb-1">💡 Panduan Pengisian Data Survey:</div>
-        <div>• Mulai dari t=0 (kondisi tanah kering awal), catat f tiap 5–10 menit</div>
-        <div>• Lanjutkan hingga f(t) stabil ≈ konstan (biasanya 60–120 menit)</div>
-        <div>• Nilai f(t) stabil akhir = Ks (konduktivitas hidraulik jenuh)</div>
-        <div>• R² &gt; 0.95 menandakan fitting yang sangat baik</div>
+      <!-- Fitting Results Card -->
+      <div id="fitResult" class="hidden bg-slate-950/80 border border-teal-600/50 rounded-2xl p-4 shadow-xl">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-bold text-teal-400 flex items-center gap-2">
+            <span>✅</span> Parameter Hasil Kalibrasi Horton
+          </h3>
+          <span class="text-xs text-slate-400">Koefisien Determinasi: <strong id="r2-val" class="text-emerald-400 font-mono text-sm">–</strong></span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5 mb-3">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-center">
+            <div class="text-[11px] text-slate-400 mb-1">f₀ (Kapasitas Awal)</div>
+            <div class="text-lg font-bold font-mono text-amber-400" id="f0-val">–</div>
+            <div class="text-[10px] text-slate-500">mm/menit</div>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-center">
+            <div class="text-[11px] text-slate-400 mb-1">fc ≡ Ks (Kapasitas Jenuh)</div>
+            <div class="text-lg font-bold font-mono text-teal-400" id="fc-val">–</div>
+            <div class="text-[10px] text-slate-500">mm/menit</div>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-center">
+            <div class="text-[11px] text-slate-400 mb-1">k (Konstanta Peluruhan)</div>
+            <div class="text-lg font-bold font-mono text-purple-400" id="k-val">–</div>
+            <div class="text-[10px] text-slate-500">menit⁻¹</div>
+          </div>
+        </div>
+
+        <!-- Horton Equation -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 mb-3 font-mono text-xs text-slate-300 text-center">
+          f(t) = <span class="text-teal-400 font-bold" id="eq-fc">–</span> + (<span class="text-amber-400 font-bold" id="eq-f0">–</span> − <span class="text-teal-400 font-bold" id="eq-fc2">–</span>) · e<sup>−<span class="text-purple-400 font-bold" id="eq-k">–</span> · t</sup>
+        </div>
+
+        <!-- Apply Button -->
+        <button onclick="applyBaseline()" class="w-full text-xs py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white rounded-xl font-bold transition shadow-lg shadow-teal-500/25 flex items-center justify-center gap-2">
+          <span>📡</span> <span>Terapkan sebagai Baseline ke Dashboard Utama & Database</span>
+        </button>
       </div>
+
     </div>
 
-    <!-- CHART PREVIEW -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <h2 class="font-bold text-white text-base mb-1 flex items-center gap-2">📈 Preview Kurva Fitting Horton</h2>
-      <p class="text-xs text-slate-400 mb-4">
-        🔵 Titik biru = data lapangan &nbsp;|&nbsp; 🟠 Kurva oranye = Horton fitted &nbsp;|&nbsp; --- = fc (Ks stabil)
-      </p>
-      <div class="relative bg-slate-950/70 border border-slate-800 rounded-xl p-2" style="height:420px">
-        <canvas id="hortonChart" class="w-full h-full"></canvas>
-        <div id="chartEmpty" class="absolute inset-0 flex items-center justify-center text-slate-600 text-sm pointer-events-none">
-          ← Masukkan data & klik "Fit Kurva Horton"
+    <!-- PREVIEW CHART & THEORETICAL GUIDE -->
+    <div class="glass-card border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-bold text-white text-base flex items-center gap-2">
+            <span>📈</span> Plot Kurva Fitting Eksponensial Horton
+          </h2>
+          <div class="text-[11px] text-slate-400 flex items-center gap-2">
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Data Lapangan</span>
+            <span class="flex items-center gap-1"><span class="w-4 h-0.5 bg-orange-400"></span> Kurva Fitted</span>
+            <span class="flex items-center gap-1"><span class="w-4 border-t border-dashed border-amber-500"></span> Ks</span>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400 mb-3">
+          Visualisasi regresi kuadrat terkecil kurva penurunan laju infiltrasi terhadap waktu uji double-ring.
+        </p>
+
+        <!-- Horton Canvas Preview -->
+        <div class="relative bg-slate-950/80 border border-slate-800/80 rounded-xl p-2 shadow-inner" style="height:360px">
+          <canvas id="hortonChart" class="w-full h-full"></canvas>
+          <div id="chartEmpty" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 text-sm pointer-events-none gap-2">
+            <span class="text-2xl">📊</span>
+            <span>Masukkan data survey dan klik "Fit Kurva Horton"</span>
+          </div>
         </div>
       </div>
-      <div class="mt-3 bg-slate-950/50 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-400 space-y-1">
-        <div>Horton (1933): <span class="text-orange-300">f(t) = f<sub>c</sub> + (f<sub>0</sub> − f<sub>c</sub>)·e<sup>−kt</sup></span></div>
-        <div>Saturated hydraulic conductivity: <span class="text-teal-300">K<sub>s</sub> ≡ f<sub>c</sub></span></div>
-        <div>Limpasan Hortonian: <span class="text-rose-300">q(t) = I(t) − f(t) &nbsp;[jika I &gt; f]</span></div>
+
+      <!-- Theory Reference Box -->
+      <div class="mt-4 bg-slate-950/70 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 space-y-1.5 font-mono">
+        <div class="text-cyan-400 font-bold mb-1 flex items-center gap-1.5">
+          <span>💡</span> <span>Formulasi Hidrologi Horton (1933):</span>
+        </div>
+        <div class="text-slate-400">• Persamaan: <span class="text-orange-300">f(t) = fc + (f0 − fc) · exp(−k · t)</span></div>
+        <div class="text-slate-400">• Konduktivitas jenuh tunak: <span class="text-teal-300">Ks ≡ fc</span> (tercapai saat t &rarr; &infin;)</div>
+        <div class="text-slate-400">• Kondisi Limpasan Hortonian: <span class="text-rose-300">Limpasan terjadi jika I(t) &gt; f(t)</span></div>
       </div>
+
     </div>
 
   </div>
 </div><!-- /page-horton -->
 
 
-<!-- ══════════ JAVASCRIPT ENGINE ══════════ -->
+<!-- ══════════ ENGINE JAVASCRIPT ══════════ -->
 <script>
-// ─── Global state ───────────────────────────────────
-let horton = { f0:8.5, fc:0.96, k:0.08 }; // mm/min
-let curScenario = 'normal';
-let surveyData = [];
-
-const DEPTHS = [10,20,30,40];
-const SC = {
-  normal:    {pvolt:12.82,ptemp:29.4,ra:0.0, h:0.0, ir:0.024,ra24:14.2, sm:[38.2,34.1,28.5,21.0],st:[26.5,25.8,25.2,24.9],ews:'NORMAL',        ewsS:'Semua parameter dalam ambang aman.',ewsC:'emerald',phase:'pra-genangan'},
-  flashflood:{pvolt:12.35,ptemp:24.8,ra:14.6,h:28.4,ir:0.003,ra24:68.5, sm:[94.5,88.2,62.0,41.5],st:[23.1,23.4,23.8,24.0],ews:'⚠️ AWAS BANJIR',ewsS:'RA ≫ f(t)! Limpasan permukaan masif.',ewsC:'rose',   phase:'genangan-aktif'},
-  landslide: {pvolt:12.40,ptemp:25.0,ra:4.8, h:8.1, ir:0.008,ra24:112.0,sm:[98.0,96.5,95.2,92.8],st:[22.8,22.9,23.1,23.3],ews:'⚠️ AWAS LONGSOR',ewsS:'SM lapisan 30–40cm jenuh kritis!',   ewsC:'rose',   phase:'genangan-aktif'},
-  drought:   {pvolt:13.45,ptemp:38.6,ra:0.0, h:0.0, ir:0.048,ra24:0.0,  sm:[9.2,11.4,13.8,15.2], st:[32.4,30.8,29.5,28.6],ews:'🌾 KEKERINGAN',  ewsS:'SM di bawah titik layu permanen.',   ewsC:'amber',  phase:'pra-genangan'},
+// ─── 1. Metadata Stasiun & Baseline Hidrologi ──────────────────
+const STATIONS = {
+  'HS-CTM-01': {
+    id: 'HS-CTM-01',
+    name: 'DAS Citarum Hulu Stasiun 01',
+    basin: 'DAS Citarum',
+    soilTexture: 'Sandy Clay Loam',
+    coords: '−7.0345, 107.7123',
+    horton: { f0: 8.50, fc: 0.96, k: 0.082, r2: 0.984 },
+    surveyPreset: [
+      { t: 0, f: 8.5 }, { t: 5, f: 6.2 }, { t: 10, f: 4.8 }, { t: 15, f: 3.6 },
+      { t: 20, f: 2.9 }, { t: 30, f: 2.1 }, { t: 45, f: 1.4 }, { t: 60, f: 1.1 },
+      { t: 90, f: 0.98 }, { t: 120, f: 0.96 }
+    ]
+  },
+  'HS-JTG-02': {
+    id: 'HS-JTG-02',
+    name: 'DAS Jatinangor Stasiun 02',
+    basin: 'DAS Cikeruh / Cimanuk (Lereng ITB)',
+    soilTexture: 'Clay Loam',
+    coords: '−6.9288, 107.7715',
+    horton: { f0: 6.20, fc: 0.54, k: 0.065, r2: 0.978 },
+    surveyPreset: [
+      { t: 0, f: 6.2 }, { t: 5, f: 4.5 }, { t: 10, f: 3.2 }, { t: 15, f: 2.3 },
+      { t: 20, f: 1.7 }, { t: 30, f: 1.1 }, { t: 45, f: 0.75 }, { t: 60, f: 0.60 },
+      { t: 90, f: 0.55 }, { t: 120, f: 0.54 }
+    ]
+  },
+  'HS-GRT-03': {
+    id: 'HS-GRT-03',
+    name: 'DAS Garut Stasiun 03',
+    basin: 'DAS Cimanuk Hulu (Vulkanik)',
+    soilTexture: 'Volcanic Ash / Silty Loam',
+    coords: '−7.2140, 107.9021',
+    horton: { f0: 11.40, fc: 1.45, k: 0.095, r2: 0.989 },
+    surveyPreset: [
+      { t: 0, f: 11.4 }, { t: 5, f: 8.5 }, { t: 10, f: 6.3 }, { t: 15, f: 4.8 },
+      { t: 20, f: 3.6 }, { t: 30, f: 2.5 }, { t: 45, f: 1.8 }, { t: 60, f: 1.55 },
+      { t: 90, f: 1.48 }, { t: 120, f: 1.45 }
+    ]
+  }
 };
 
-// ─── Page navigation ────────────────────────────────
-function goPage(p){
-  ['main','horton'].forEach(k=>{
-    document.getElementById('page-'+k).classList.toggle('hidden',k!==p);
-    const nb=document.getElementById('nav-'+k);
-    nb.classList.toggle('nav-active',k===p);
-    nb.classList.toggle('nav-inactive',k!==p);
-  });
-  document.getElementById('scenario-bar').classList.toggle('hidden',p!=='main');
-  if(p==='main') setTimeout(redrawMain,80);
-  if(p==='horton') setTimeout(()=>{if(surveyData.length) drawHorton();},80);
+// ─── 2. Global State ──────────────────────────────────────────
+let curStationId = 'HS-CTM-01';
+let activeHorton = { ...STATIONS[curStationId].horton };
+let curScenario = 'normal';
+let isServerConnectedMode = false;
+let isSimulationPlaying = true;
+let simIntervalTimer = null;
+let surveyData = [];
+
+const DEPTHS = [10, 20, 30, 40]; // cm
+
+// Buffer data time-series dinamis (60 menit terakhir)
+const BUFFER_SIZE = 60;
+let timeSeries = {
+  ra: [],   // Rain rate (mm/min)
+  ft: [],   // Infiltration rate f(t) (mm/s)
+  h: [],    // Ponding depth (mm)
+  sm: [[], [], [], []], // 10, 20, 30, 40 cm (%)
+  st: [[], [], [], []], // 10, 20, 30, 40 cm (°C)
+  pvolt: 12.82,
+  ptemp: 28.5,
+  ra24: 14.2
+};
+
+// ─── 3. Simulasi Hidrologi Dinamis (Real-Time Physics Engine) ───
+const hF = (t, params) => params.fc + (params.f0 - params.fc) * Math.exp(-params.k * t);
+
+function initTimeSeriesBuffer() {
+  timeSeries.ra = [];
+  timeSeries.ft = [];
+  timeSeries.h = [];
+  timeSeries.sm = [[], [], [], []];
+  timeSeries.st = [[], [], [], []];
+
+  for (let i = 0; i < BUFFER_SIZE; i++) {
+    const point = generatePhysicsPoint(i, curScenario);
+    timeSeries.ra.push(point.ra);
+    timeSeries.ft.push(point.ft);
+    timeSeries.h.push(point.h);
+    for (let d = 0; d < 4; d++) {
+      timeSeries.sm[d].push(point.sm[d]);
+      timeSeries.st[d].push(point.st[d]);
+    }
+  }
+  timeSeries.pvolt = 12.82;
+  timeSeries.ptemp = 28.5;
+  timeSeries.ra24 = curScenario === 'flashflood' ? 68.5 : curScenario === 'landslide' ? 112.0 : 14.2;
 }
 
-// ─── Scenario ───────────────────────────────────────
-function setScenario(key){
-  curScenario=key;
-  document.querySelectorAll('.sc').forEach(b=>{b.classList.remove('sc-active');b.classList.add('sc-inactive');});
-  document.getElementById('sc-'+key).classList.remove('sc-inactive');
-  document.getElementById('sc-'+key).classList.add('sc-active');
-  updateKPIs(); redrawMain();
-}
+function generatePhysicsPoint(step, sc) {
+  const baseHorton = activeHorton;
+  let ra = 0, h = 0, ft = baseHorton.fc / 60;
+  let sm = [36.0, 32.0, 28.0, 24.0];
+  let st = [26.5, 25.8, 25.2, 24.9];
 
-// ─── KPI update ─────────────────────────────────────
-function updateKPIs(){
-  const d=SC[curScenario];
-  const el=(id,v)=>{const e=document.getElementById(id);if(e)e.innerHTML=v;};
-
-  el('kpi-pvolt',d.pvolt.toFixed(2)+' <span class="text-sm text-slate-400">V</span>');
-  const pct=Math.round((d.pvolt-11)/(13.6-11)*100);
-  document.getElementById('bar-pvolt').style.width=pct+'%';
-  document.getElementById('bar-pvolt').className='h-full rounded-full transition-all '+(pct>60?'bg-emerald-500':pct>30?'bg-amber-500':'bg-rose-500');
-  el('sub-pvolt','<span class="'+(pct>60?'text-emerald-400':'text-amber-400')+'">'+(pct>60?'Prima ✓':'⚠️ Perhatian')+' ('+pct+'%)</span>');
-
-  el('kpi-ptemp',d.ptemp.toFixed(1)+' <span class="text-sm text-slate-400">°C</span>');
-  el('kpi-ra',   d.ra.toFixed(1)+' <span class="text-sm text-slate-400">mm/min</span>');
-  el('kpi-ra24', d.ra24.toFixed(1)+' mm');
-  el('kpi-h',    d.h.toFixed(1)+' <span class="text-sm text-slate-400">mm</span>');
-  el('kpi-ir',   d.ir.toFixed(3)+' <span class="text-sm text-slate-400">mm/s</span>');
-
-  const phaseMap={'pra-genangan':'<span class="text-emerald-400">Fase 1 · Pra-genangan</span>','genangan-aktif':'<span class="text-blue-400">Fase 2 · Genangan Aktif</span>','post-hujan':'<span class="text-purple-400">Fase 3 · Post-hujan/Ks</span>'};
-  el('kpi-phase',phaseMap[d.phase]||'–');
-
-  const ewsCls={rose:'bg-rose-950/40 border-rose-500/60',amber:'bg-amber-950/40 border-amber-500/60',emerald:'bg-slate-900 border-emerald-500/40'};
-  const ewsTxt={rose:'text-rose-400',amber:'text-amber-400',emerald:'text-emerald-400'};
-  document.getElementById('ews-card').className='rounded-xl p-3.5 border '+ewsCls[d.ewsC];
-  el('ews-title','<span class="font-bold text-base '+ewsTxt[d.ewsC]+'">'+d.ews+'</span>');
-  el('ews-sub',d.ewsS);
-
-  // EWS matrix
-  const flood  = curScenario==='flashflood';
-  const slide  = curScenario==='landslide';
-  const drought= curScenario==='drought';
-  setEwsBox('flood',  flood,  '🚨','KRITIS: Limpasan Hortonian masif terdeteksi!','Aman: tidak ada limpasan kritis.');
-  setEwsBox('slide',  slide,  '🚨','KRITIS: Tekanan air pori lapisan dalam sangat tinggi!','Aman: stabilitas lereng terjaga.');
-  setEwsBox('drought',drought,'⚠️','WASPADA: SM di bawah titik layu permanen.','Aman: kelembaban tanah cukup.');
-
-  // Horton connector
-  const irNow=d.ir*60; // mm/s → mm/min
-  const ksRT=(d.h>0&&d.ra===0)?d.ir.toFixed(4):d.ir.toFixed(4);
-  const delta=(parseFloat(ksRT)-horton.fc/60).toFixed(4);
-  el('horton-pos','f(t) = '+irNow.toFixed(3)+' mm/min');
-  el('ks-survey-lbl',horton.fc.toFixed(3)+' mm/min');
-  el('ks-rt-lbl',ksRT+' mm/s');
-  el('ks-delta-lbl',(delta>=0?'+':'')+delta+' mm');
-}
-
-function setEwsBox(type,triggered,icon,dangerTxt,safeTxt){
-  const box=document.getElementById('ews-'+type);
-  const badge=document.getElementById('badge-'+type);
-  const desc=document.getElementById('desc-'+type);
-  if(triggered){
-    box.className='p-3.5 rounded-xl border border-rose-500/60 bg-rose-950/30 flex items-start gap-3 transition-all';
-    badge.innerText='🚨'; desc.className='text-xs text-rose-300 mt-1'; desc.innerText=dangerTxt;
+  if (sc === 'flashflood') {
+    // Badai konvektif mendadak: Hujan intensitas tinggi melebihi kapasitas infiltrasi
+    const progress = Math.sin((step / BUFFER_SIZE) * Math.PI);
+    ra = Math.max(0.2, 14.0 * progress + (Math.random() - 0.5) * 1.5);
+    h = Math.min(32.0, progress * 30.0 + Math.random() * 0.8);
+    // Kapasitas infiltrasi jenuh menurun cepat
+    ft = Math.max(baseHorton.fc / 60, (hF(Math.max(0, step - 10), baseHorton) / 60) * 0.7);
+    sm = [
+      Math.min(97.5, 70.0 + progress * 28.0),
+      Math.min(92.0, 55.0 + progress * 25.0),
+      Math.min(76.0, 40.0 + progress * 20.0),
+      Math.min(52.0, 28.0 + progress * 15.0)
+    ];
+    st = [23.1, 23.4, 23.8, 24.0];
+  } else if (sc === 'landslide') {
+    // Hujan lama berkelanjutan menjenuhkan lapisan bawah tanah (30-40cm)
+    ra = Math.max(0.5, 4.5 + Math.sin(step / 6) * 1.0);
+    h = 6.0 + Math.random() * 0.5;
+    ft = Math.max(0.006, (baseHorton.fc / 60) * 0.85);
+    sm = [
+      95.5 + Math.random() * 0.8,
+      94.8 + Math.random() * 0.8,
+      Math.min(98.5, 88.0 + (step / BUFFER_SIZE) * 10.0),
+      Math.min(96.8, 85.0 + (step / BUFFER_SIZE) * 11.0)
+    ];
+    st = [22.8, 22.9, 23.1, 23.3];
+  } else if (sc === 'drought') {
+    // Defisit lengas tanah berkepanjangan tanpa hujan
+    ra = 0.0;
+    h = 0.0;
+    ft = (baseHorton.f0 / 60) * 0.65; // Kapasitas resap kering tinggi
+    sm = [
+      Math.max(6.5, 12.0 - (step / BUFFER_SIZE) * 5.0),
+      Math.max(8.0, 14.0 - (step / BUFFER_SIZE) * 5.0),
+      Math.max(10.5, 16.0 - (step / BUFFER_SIZE) * 4.5),
+      Math.max(12.0, 17.5 - (step / BUFFER_SIZE) * 4.0)
+    ];
+    st = [33.2, 31.4, 29.8, 28.9];
   } else {
-    box.className='p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 flex items-start gap-3 transition-all';
-    badge.innerText='🟢'; desc.className='text-xs text-slate-400 mt-1'; desc.innerText=safeTxt;
-  }
-}
-
-// ─── Canvas helper ───────────────────────────────────
-function setupCanvas(id){
-  const c=document.getElementById(id);
-  const dpr=window.devicePixelRatio||1;
-  const r=c.getBoundingClientRect();
-  c.width=r.width*dpr; c.height=r.height*dpr;
-  const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
-  return{ctx,w:r.width,h:r.height};
-}
-
-// ─── Horton model ────────────────────────────────────
-const hF=t=>horton.fc+(horton.f0-horton.fc)*Math.exp(-horton.k*t);
-
-// ─── Draw: Soil Profile (SM+ST combined vertical) ────
-function drawSoilChart(){
-  const{ctx,w,h}=setupCanvas('soilChart');
-  const d=SC[curScenario];
-  const ml=54,mr=50,mt=38,mb=38;
-  const pw=w-ml-mr,ph=h-mt-mb;
-
-  const yD=dep=>mt+(dep/40)*ph;
-  const xSM=v=>ml+(v/100)*pw;
-  const allST=d.st;
-  const stMin=Math.floor(Math.min(...allST)-2);
-  const stMax=Math.ceil(Math.max(...allST)+2);
-  const xST=v=>ml+(v-stMin)/(stMax-stMin)*pw;
-
-  // Background depth gradient
-  const bg=ctx.createLinearGradient(0,mt,0,mt+ph);
-  bg.addColorStop(0,'rgba(15,23,42,0)'); bg.addColorStop(1,'rgba(15,23,42,.5)');
-  ctx.fillStyle=bg; ctx.fillRect(ml,mt,pw,ph);
-
-  // Grid lines (horizontal depths)
-  ctx.strokeStyle='#1e293b'; ctx.lineWidth=1;
-  [0,10,20,30,40].forEach(dep=>{
-    const y=yD(dep);
-    ctx.beginPath(); ctx.moveTo(ml,y); ctx.lineTo(ml+pw,y); ctx.stroke();
-    ctx.fillStyle='#64748b'; ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.font='10px monospace';
-    ctx.fillText(dep===0?'0 cm':'−'+dep+' cm',ml-6,y);
-  });
-
-  // SM vertical gridlines
-  [0,20,40,60,80,100].forEach(v=>{
-    const x=xSM(v);
-    ctx.strokeStyle='#1e293b'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(x,mt); ctx.lineTo(x,mt+ph); ctx.stroke();
-    ctx.fillStyle='#60a5fa'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.font='10px monospace';
-    ctx.fillText(v+'%',x,mt+ph+6);
-  });
-
-  // Reference lines
-  [[15,'#f59e0b'],[90,'#f43f5e']].forEach(([v,c])=>{
-    const x=xSM(v);
-    ctx.strokeStyle=c; ctx.lineWidth=1; ctx.setLineDash([3,4]);
-    ctx.beginPath(); ctx.moveTo(x,mt); ctx.lineTo(x,mt+ph); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle=c; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.font='9px monospace';
-    ctx.fillText(v==='15'?'PWP':'Sat.',x,mt-3);
-  });
-
-  // SM area
-  const smP=d.sm.map((v,i)=>({x:xSM(v),y:yD(DEPTHS[i])}));
-  ctx.beginPath();
-  ctx.moveTo(ml,mt);
-  ctx.lineTo(smP[0].x,smP[0].y);
-  smP.forEach(p=>ctx.lineTo(p.x,p.y));
-  ctx.lineTo(ml,yD(40)); ctx.closePath();
-  const gSM=ctx.createLinearGradient(ml,0,ml+pw,0);
-  gSM.addColorStop(0,'rgba(59,130,246,.08)');
-  gSM.addColorStop(1,'rgba(59,130,246,.50)');
-  ctx.fillStyle=gSM; ctx.fill();
-
-  // SM line
-  ctx.beginPath(); ctx.moveTo(smP[0].x,smP[0].y);
-  smP.forEach(p=>ctx.lineTo(p.x,p.y));
-  ctx.strokeStyle='#60a5fa'; ctx.lineWidth=2.5; ctx.stroke();
-
-  // SM dots + labels
-  smP.forEach((p,i)=>{
-    const v=d.sm[i];
-    ctx.beginPath(); ctx.arc(p.x,p.y,5,0,Math.PI*2);
-    ctx.fillStyle=v>=90?'#f43f5e':v>=70?'#3b82f6':v>=30?'#0ea5e9':'#f59e0b';
-    ctx.fill(); ctx.strokeStyle='#e0f2fe'; ctx.lineWidth=1.5; ctx.stroke();
-    ctx.fillStyle='#e0f2fe'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.font='bold 10px monospace';
-    ctx.fillText(v.toFixed(1)+'%',p.x+7,p.y);
-  });
-
-  // ST line
-  const stP=d.st.map((v,i)=>({x:xST(v),y:yD(DEPTHS[i])}));
-  ctx.beginPath(); ctx.moveTo(stP[0].x,stP[0].y);
-  stP.forEach(p=>ctx.lineTo(p.x,p.y));
-  ctx.strokeStyle='#fb923c'; ctx.lineWidth=2.5; ctx.stroke();
-
-  // ST dots + labels
-  stP.forEach((p,i)=>{
-    ctx.beginPath(); ctx.arc(p.x,p.y,5,0,Math.PI*2);
-    ctx.fillStyle='#c2410c'; ctx.fill(); ctx.strokeStyle='#fed7aa'; ctx.lineWidth=1.5; ctx.stroke();
-    ctx.fillStyle='#fed7aa'; ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.font='bold 10px monospace';
-    ctx.fillText(d.st[i].toFixed(1)+'°C',p.x-7,p.y);
-  });
-
-  // ST top axis
-  for(let i=0;i<=4;i++){
-    const v=stMin+i*(stMax-stMin)/4;
-    const x=xST(v);
-    ctx.fillStyle='#fb923c'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.font='10px monospace';
-    ctx.fillText(v.toFixed(0)+'°C',x,mt-4);
+    // Normal: Presipitasi ringan sesekali, infiltrasi seimbang
+    ra = (step % 18 > 13) ? Math.random() * 1.2 : 0.0;
+    h = 0.0;
+    ft = (baseHorton.fc / 60) + 0.008 + (Math.random() - 0.5) * 0.002;
+    sm = [38.2 + Math.sin(step / 5) * 1.5, 34.1, 28.5, 21.0];
+    st = [26.5, 25.8, 25.2, 24.9];
   }
 
-  // Axis titles
-  ctx.fillStyle='#60a5fa'; ctx.font='10px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText('SM (%)',ml+pw/2,mt+ph+20);
-  ctx.fillStyle='#fb923c'; ctx.textBaseline='bottom';
-  ctx.fillText('ST (°C)',ml+pw/2,mt-17);
+  return { ra: round(ra, 2), ft: round(ft, 4), h: round(h, 1), sm: sm.map(v => round(v, 1)), st: st.map(v => round(v, 1)) };
 }
 
-// ─── Draw: Infiltration Chart ────────────────────────
-function drawInfChart(){
-  const{ctx,w,h}=setupCanvas('infChart');
-  const d=SC[curScenario];
-  const ml=50,mr=20,mt=28,mb=38;
-  const pw=w-ml-mr,ph=h-mt-mb;
-  const pts=60;
+function simTick() {
+  if (!isSimulationPlaying) return;
 
-  // Generate data
-  const ra=[],ft=[],ht=[];
-  for(let i=0;i<pts;i++){
-    let rain=0,inf=0;
-    if(curScenario==='flashflood'){
-      rain=i>=15&&i<=45?12+4*Math.sin((i-15)*Math.PI/30)+Math.random()*1.5:Math.random()*.4;
-      inf=Math.max(horton.fc/60,hF(Math.max(0,i-10))/60);
-    } else if(curScenario==='landslide'){
-      rain=i>=5?4+Math.sin(i/4):.1;
-      inf=Math.max(0.005,hF(Math.max(0,i-5))/60*.7);
-    } else if(curScenario==='drought'){
-      rain=0; inf=hF(0)/60+.004;
+  const lastStep = BUFFER_SIZE;
+  const newPt = generatePhysicsPoint(lastStep, curScenario);
+
+  // Geser buffer ke kiri (sliding window)
+  timeSeries.ra.shift(); timeSeries.ra.push(newPt.ra);
+  timeSeries.ft.shift(); timeSeries.ft.push(newPt.ft);
+  timeSeries.h.shift();  timeSeries.h.push(newPt.h);
+  for (let d = 0; d < 4; d++) {
+    timeSeries.sm[d].shift(); timeSeries.sm[d].push(newPt.sm[d]);
+    timeSeries.st[d].shift(); timeSeries.st[d].push(newPt.st[d]);
+  }
+
+  // Update battery & panel temp
+  if (curScenario === 'drought') {
+    timeSeries.pvolt = Math.min(13.6, timeSeries.pvolt + 0.01);
+    timeSeries.ptemp = Math.min(42.0, timeSeries.ptemp + 0.05);
+  } else if (curScenario === 'flashflood' || curScenario === 'landslide') {
+    timeSeries.pvolt = Math.max(12.1, timeSeries.pvolt - 0.01);
+    timeSeries.ptemp = Math.max(22.5, timeSeries.ptemp - 0.04);
+  } else {
+    timeSeries.pvolt = 12.82 + (Math.random() - 0.5) * 0.03;
+    timeSeries.ptemp = 28.5 + (Math.random() - 0.5) * 0.2;
+  }
+
+  updateDashboardUI();
+}
+
+function round(val, dec) { return Number(Math.round(val + 'e' + dec) + 'e-' + dec); }
+
+// ─── 4. Update UI & Analisis EWS ──────────────────────────────
+function updateDashboardUI() {
+  const lastIdx = BUFFER_SIZE - 1;
+  const curRA = timeSeries.ra[lastIdx];
+  const curFT = timeSeries.ft[lastIdx];
+  const curH  = timeSeries.h[lastIdx];
+  const curSM = [timeSeries.sm[0][lastIdx], timeSeries.sm[1][lastIdx], timeSeries.sm[2][lastIdx], timeSeries.sm[3][lastIdx]];
+  const curST = [timeSeries.st[0][lastIdx], timeSeries.st[1][lastIdx], timeSeries.st[2][lastIdx], timeSeries.st[3][lastIdx]];
+
+  // 1. KPI Cards
+  document.getElementById('kpi-pvolt').innerHTML = `${timeSeries.pvolt.toFixed(2)} <span class="text-xs text-slate-400">V</span>`;
+  const pctVolt = Math.round(((timeSeries.pvolt - 11.2) / (13.6 - 11.2)) * 100);
+  const barVolt = document.getElementById('bar-pvolt');
+  barVolt.style.width = Math.min(100, Math.max(5, pctVolt)) + '%';
+  barVolt.className = 'h-full rounded-full transition-all duration-500 ' + (pctVolt > 50 ? 'bg-emerald-500' : pctVolt > 25 ? 'bg-amber-500' : 'bg-rose-500');
+  document.getElementById('sub-pvolt').innerHTML = `
+    <span class="${pctVolt > 50 ? 'text-emerald-400' : 'text-amber-400'} font-semibold">${pctVolt > 50 ? 'Prima ✓' : 'Perhatian ⚠️'} (${pctVolt}%)</span>
+    <span class="text-slate-500 font-mono">LiFePO₄</span>`;
+
+  document.getElementById('kpi-ptemp').innerHTML = `${timeSeries.ptemp.toFixed(1)} <span class="text-xs text-slate-400">°C</span>`;
+  document.getElementById('ptemp-badge').innerText = timeSeries.ptemp >= 45.0 ? 'Kritis!' : timeSeries.ptemp >= 35.0 ? 'Hangat' : 'Normal';
+  document.getElementById('ptemp-badge').className = timeSeries.ptemp >= 45.0 ? 'text-rose-400 font-bold' : timeSeries.ptemp >= 35.0 ? 'text-amber-400' : 'text-emerald-400';
+
+  document.getElementById('kpi-ra').innerHTML = `${curRA.toFixed(1)} <span class="text-xs text-slate-400">mm/min</span>`;
+  document.getElementById('kpi-ra24').innerText = `${timeSeries.ra24.toFixed(1)} mm`;
+
+  document.getElementById('kpi-h').innerHTML = `${curH.toFixed(1)} <span class="text-xs text-slate-400">mm</span>`;
+  document.getElementById('h-status-badge').innerText = curH >= 25.0 ? 'Genangan Tinggi ⚠️' : curH >= 5.0 ? 'Genangan Aktif' : 'Permukaan Bebas';
+  document.getElementById('h-status-badge').className = curH >= 25.0 ? 'text-rose-400 font-bold' : curH >= 5.0 ? 'text-blue-400 font-medium' : 'text-slate-500';
+
+  document.getElementById('kpi-ir').innerHTML = `${curFT.toFixed(3)} <span class="text-xs text-slate-400">mm/s</span>`;
+
+  // Fase Infiltrasi & Highlight Pill
+  let phaseName = 'Fase 1 · Pra-genangan';
+  let pPill = 1;
+  if (curH > 0.5 && curRA > 0.05) {
+    phaseName = 'Fase 2 · Genangan Aktif (I &minus; &Delta;H/&Delta;t)';
+    pPill = 2;
+  } else if (curH > 0.5 && curRA <= 0.05) {
+    phaseName = 'Fase 3 · Post-Hujan / Ks (&minus;&Delta;H/&Delta;t)';
+    pPill = 3;
+  }
+  document.getElementById('kpi-phase').innerHTML = `<span class="${pPill === 1 ? 'text-emerald-400' : pPill === 2 ? 'text-blue-400' : 'text-purple-400'} font-medium">${phaseName}</span>`;
+
+  ['p1', 'p2', 'p3'].forEach((p, idx) => {
+    const el = document.getElementById('pill-' + p);
+    if (idx + 1 === pPill) {
+      el.className = 'text-[11px] px-2.5 py-1 rounded-lg bg-cyan-950/70 border border-cyan-500 text-cyan-300 font-bold shadow-md shadow-cyan-500/20';
     } else {
-      rain=i>40?Math.random()*2:.1;
-      inf=i>40?Math.max(horton.fc/60,hF(i-40)/60):hF(0)/60+.003;
-    }
-    ra.push(rain); ft.push(inf);
-  }
-
-  const maxRA=Math.max(20,...ra)*1.1;
-  const maxIR=Math.max(.12,...ft,hF(0)/60*1.2);
-  const xOf=i=>ml+(i/(pts-1))*pw;
-  const yIR=v=>mt+ph/2+(ph/2)*(1-v/maxIR);
-  const yRA=v=>mt+(v/maxRA)*(ph*.44);
-
-  // Grid
-  ctx.strokeStyle='#1e293b'; ctx.lineWidth=1;
-  for(let r=0;r<=4;r++){const y=mt+r*(ph/4);ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(ml+pw,y);ctx.stroke();}
-  for(let c=0;c<=5;c++){
-    const x=ml+(c/5)*pw;
-    ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,mt+ph);ctx.stroke();
-    ctx.fillStyle='#475569';ctx.textAlign='center';ctx.font='9px monospace';
-    ctx.fillText((c*12)+'m',x,mt+ph+13);
-  }
-
-  // Midline
-  ctx.strokeStyle='#334155';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
-  ctx.beginPath();ctx.moveTo(ml,mt+ph/2);ctx.lineTo(ml+pw,mt+ph/2);ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle='#64748b';ctx.font='9px monospace';ctx.textAlign='left';
-  ctx.fillText('▲ Hujan RA',ml+4,mt+ph/2-5);
-  ctx.fillText('▼ Infiltrasi f(t)',ml+4,mt+ph/2+11);
-
-  // RA bars
-  ra.forEach((v,i)=>{
-    const x=xOf(i);const bw=pw/pts*.72;
-    const bh=(v/maxRA)*(ph*.42);
-    ctx.fillStyle='rgba(59,130,246,.65)';
-    ctx.fillRect(x-bw/2,mt+ph/2-bh,bw,bh);
-  });
-
-  // Runoff shading
-  ra.forEach((v,i)=>{
-    const rmms=v/60;
-    if(rmms>ft[i]){
-      ctx.fillStyle='rgba(244,63,94,.18)';
-      const bh=(rmms-ft[i])/maxIR*(ph*.5);
-      ctx.fillRect(xOf(i)-pw/pts/2,yIR(rmms),pw/pts,Math.abs(yIR(ft[i])-yIR(rmms)));
+      el.className = 'text-[11px] px-2.5 py-1 rounded-lg bg-slate-900/60 border border-slate-800 text-slate-400 font-medium';
     }
   });
 
-  // Horton baseline (dashed)
+  // Soil values below chart
+  document.getElementById('sm-val-10').innerText = curSM[0].toFixed(1) + '%';
+  document.getElementById('sm-val-20').innerText = curSM[1].toFixed(1) + '%';
+  document.getElementById('sm-val-30').innerText = curSM[2].toFixed(1) + '%';
+  document.getElementById('sm-val-40').innerText = curSM[3].toFixed(1) + '%';
+
+  // 2. Evaluasi Aturan Fisika EWS
+  const rainRate_mm_s = curRA / 60.0;
+  const isFlood = (curRA >= 4.0) && (rainRate_mm_s > curFT) && (curSM[0] >= 85.0);
+  const isLandslide = (curSM[2] >= 90.0) && (curSM[3] >= 90.0);
+  const smAvg = (curSM[0] + curSM[1] + curSM[2] + curSM[3]) / 4.0;
+  const isDrought = (smAvg <= 15.0) && (curRA === 0.0);
+
+  // EWS Status Card
+  const ewsCard = document.getElementById('ews-card');
+  const ewsTitle = document.getElementById('ews-title');
+  const ewsSub = document.getElementById('ews-sub');
+  const ewsDot = document.getElementById('ews-pulse-indicator');
+
+  if (isFlood) {
+    ewsCard.className = 'glass-card border-2 border-rose-500 bg-rose-950/40 rounded-2xl p-3.5 shadow-xl shadow-rose-900/30';
+    ewsTitle.className = 'font-extrabold text-base tracking-tight text-rose-400';
+    ewsTitle.innerText = '🚨 AWAS: BANJIR BANDANG';
+    ewsSub.innerText = `Intensitas hujan (${curRA.toFixed(1)} mm/min) melebihi laju resapan (${curFT.toFixed(3)} mm/s). Topsoil jenuh ${curSM[0].toFixed(1)}%!`;
+    ewsDot.className = 'w-2 h-2 rounded-full bg-rose-500 pulse-danger';
+  } else if (isLandslide) {
+    ewsCard.className = 'glass-card border-2 border-rose-500 bg-rose-950/40 rounded-2xl p-3.5 shadow-xl shadow-rose-900/30';
+    ewsTitle.className = 'font-extrabold text-base tracking-tight text-rose-400';
+    ewsTitle.innerText = '🚨 AWAS: POTENSI LONGSOR';
+    ewsSub.innerText = `Lapisan bidang gelincir 30-40cm telah jenuh kritis (${curSM[2].toFixed(1)}% & ${curSM[3].toFixed(1)}%). Kuat geser tanah melemah drastis!`;
+    ewsDot.className = 'w-2 h-2 rounded-full bg-rose-500 pulse-danger';
+  } else if (isDrought) {
+    ewsCard.className = 'glass-card border-2 border-amber-500 bg-amber-950/40 rounded-2xl p-3.5 shadow-xl shadow-amber-900/30';
+    ewsTitle.className = 'font-extrabold text-base tracking-tight text-amber-400';
+    ewsTitle.innerText = '⚠️ WASPADA: KEKERINGAN';
+    ewsSub.innerText = `Rerata kelembaban profil 0-40cm (${smAvg.toFixed(1)}%) di bawah Permanent Wilting Point (15%). Terjadi defisit air perakaran.`;
+    ewsDot.className = 'w-2 h-2 rounded-full bg-amber-500 pulse-dot';
+  } else {
+    ewsCard.className = 'glass-card border border-emerald-500/40 rounded-2xl p-3.5 shadow-lg';
+    ewsTitle.className = 'font-extrabold text-base tracking-tight text-emerald-400';
+    ewsTitle.innerText = 'NORMAL';
+    ewsSub.innerText = 'Semua parameter hidrometeorologi DAS dalam kondisi stabil dan aman.';
+    ewsDot.className = 'w-2 h-2 rounded-full bg-emerald-500 pulse-dot';
+  }
+
+  // EWS Individual Matrix Cards
+  updateEwsMatrixCard('flood', isFlood, '🚨', 'BAHAYA',
+    `Intensitas hujan (${curRA.toFixed(1)} mm/min) melampaui infiltrasi tanah (${curFT.toFixed(3)} mm/s) dengan topsoil jenuh ${curSM[0].toFixed(1)}%. Terjadi limpasan permukaan (runoff) masif!`,
+    'Intensitas hujan di bawah kapasitas infiltrasi tanah. Seluruh air terserap ke pori tanah, tidak ada limpasan kritis.',
+    `Genangan: ${curH.toFixed(1)} mm`
+  );
+
+  updateEwsMatrixCard('slide', isLandslide, '🚨', 'BAHAYA',
+    `Akumulasi air pori di kedalaman 30cm (${curSM[2].toFixed(1)}%) dan 40cm (${curSM[3].toFixed(1)}%) melebihi ambang batas kritis. Risiko longsor lereng tinggi!`,
+    'Tekanan air pori pada horizon bidang gelincir (30–40 cm) berada dalam batas stabilitas lereng yang aman.',
+    `SM 30-40cm: ${((curSM[2] + curSM[3]) / 2).toFixed(1)}%`
+  );
+
+  updateEwsMatrixCard('drought', isDrought, '⚠️', 'WASPADA',
+    `Rerata kelembaban 0-40cm (${smAvg.toFixed(1)}%) jatuh di bawah Titik Layu Permanen (PWP). Tanaman mengalami stres air parah.`,
+    'Kelembaban profil tanah di atas Titik Layu Permanen (Permanent Wilting Point, PWP ≈ 15%). Kebutuhan tanaman tercukupi.',
+    `Rerata SM: ${smAvg.toFixed(1)}%`
+  );
+
+  // Horton Baseline Connector
+  const irMmMin = curFT * 60.0;
+  const ksDelta = curFT - (activeHorton.fc / 60.0);
+  document.getElementById('horton-pos').innerText = `f(t) = ${irMmMin.toFixed(3)} mm/min`;
+  document.getElementById('ks-survey-lbl').innerText = `${activeHorton.fc.toFixed(3)} mm/min`;
+  document.getElementById('ks-rt-lbl').innerText = `${curFT.toFixed(4)} mm/s`;
+  document.getElementById('ks-delta-lbl').innerHTML = `${ksDelta >= 0 ? '+' : ''}${ksDelta.toFixed(4)} mm/s`;
+  document.getElementById('ks-delta-lbl').className = ksDelta < 0 ? 'font-mono text-rose-400 font-bold' : 'font-mono text-emerald-400 font-bold';
+
+  // Redraw Canvases
+  drawSoilChart();
+  drawInfChart();
+}
+
+function updateEwsMatrixCard(type, triggered, icon, tagText, dangerDesc, safeDesc, metricText) {
+  const box = document.getElementById('ews-' + type);
+  const badge = document.getElementById('badge-' + type);
+  const tag = document.getElementById('tag-' + type);
+  const desc = document.getElementById('desc-' + type);
+  const metric = document.getElementById('metric-' + type);
+
+  if (triggered) {
+    box.className = 'p-4 rounded-xl border-2 border-rose-500/70 bg-rose-950/40 flex items-start gap-3.5 transition-all shadow-lg shadow-rose-950/50';
+    badge.innerText = icon;
+    tag.innerText = tagText;
+    tag.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-900 border border-rose-500 text-rose-200 font-bold';
+    desc.innerText = dangerDesc;
+    desc.className = 'text-xs text-rose-200 mt-1 leading-relaxed font-medium';
+    metric.className = 'text-rose-400 font-bold font-mono';
+  } else {
+    box.className = 'p-4 rounded-xl border border-slate-800 bg-slate-950/60 flex items-start gap-3.5 transition-all';
+    badge.innerText = '🟢';
+    tag.innerText = 'AMAN';
+    tag.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400';
+    desc.innerText = safeDesc;
+    desc.className = 'text-xs text-slate-300 mt-1 leading-relaxed';
+    metric.className = 'text-cyan-400 font-mono';
+  }
+  metric.innerText = metricText;
+}
+
+// ─── 5. Canvas Renderers: Soil Profile & Infiltration ──────────
+function setupCanvas(id) {
+  const c = document.getElementById(id);
+  const dpr = window.devicePixelRatio || 1;
+  const r = c.getBoundingClientRect();
+  c.width = r.width * dpr;
+  c.height = r.height * dpr;
+  const ctx = c.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return { ctx, w: r.width, h: r.height };
+}
+
+function drawSoilChart() {
+  const { ctx, w, h } = setupCanvas('soilChart');
+  const lastIdx = BUFFER_SIZE - 1;
+  const smVals = [timeSeries.sm[0][lastIdx], timeSeries.sm[1][lastIdx], timeSeries.sm[2][lastIdx], timeSeries.sm[3][lastIdx]];
+  const stVals = [timeSeries.st[0][lastIdx], timeSeries.st[1][lastIdx], timeSeries.st[2][lastIdx], timeSeries.st[3][lastIdx]];
+
+  const ml = 58, mr = 50, mt = 40, mb = 40;
+  const pw = w - ml - mr, ph = h - mt - mb;
+
+  const yD = dep => mt + (dep / 40) * ph;
+  const xSM = v => ml + (v / 100) * pw;
+  const stMin = Math.floor(Math.min(...stVals) - 2);
+  const stMax = Math.ceil(Math.max(...stVals) + 2);
+  const xST = v => ml + ((v - stMin) / (stMax - stMin)) * pw;
+
+  // Background Depth Gradient
+  const bg = ctx.createLinearGradient(0, mt, 0, mt + ph);
+  bg.addColorStop(0, 'rgba(15,23,42,0.1)');
+  bg.addColorStop(1, 'rgba(15,23,42,0.6)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(ml, mt, pw, ph);
+
+  // Depth Horizontal Gridlines
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 1;
+  [0, 10, 20, 30, 40].forEach(dep => {
+    const y = yD(dep);
+    ctx.beginPath(); ctx.moveTo(ml, y); ctx.lineTo(ml + pw, y); ctx.stroke();
+    ctx.fillStyle = '#64748b'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.font = '10px monospace';
+    ctx.fillText(dep === 0 ? 'Permukaan' : `−${dep} cm`, ml - 8, y);
+  });
+
+  // SM Vertical Gridlines
+  [0, 25, 50, 75, 100].forEach(v => {
+    const x = xSM(v);
+    ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, mt); ctx.lineTo(x, mt + ph); ctx.stroke();
+    ctx.fillStyle = '#60a5fa'; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.font = '10px monospace';
+    ctx.fillText(v + '%', x, mt + ph + 8);
+  });
+
+  // Reference Lines: Permanent Wilting Point (15%) & Saturation (90%)
+  [[15, '#f59e0b', 'PWP (15%)'], [90, '#f43f5e', 'Saturasi Kritis (90%)']].forEach(([v, col, lbl]) => {
+    const x = xSM(v);
+    ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(x, mt); ctx.lineTo(x, mt + ph); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.font = '9px monospace';
+    ctx.fillText(lbl, x, mt - 4);
+  });
+
+  // SM Polygon Fill Area
+  const smP = smVals.map((v, i) => ({ x: xSM(v), y: yD(DEPTHS[i]) }));
   ctx.beginPath();
-  for(let i=0;i<pts;i++){const y=yIR(hF(i)/60);if(i===0)ctx.moveTo(xOf(i),y);else ctx.lineTo(xOf(i),y);}
-  ctx.strokeStyle='#94a3b8';ctx.lineWidth=1.5;ctx.setLineDash([5,5]);ctx.stroke();ctx.setLineDash([]);
+  ctx.moveTo(ml, mt);
+  ctx.lineTo(smP[0].x, smP[0].y);
+  smP.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(ml, yD(40));
+  ctx.closePath();
 
-  // fc line
-  ctx.beginPath();ctx.moveTo(ml,yIR(horton.fc/60));ctx.lineTo(ml+pw,yIR(horton.fc/60));
-  ctx.strokeStyle='#d97706';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle='#d97706';ctx.font='9px monospace';ctx.textAlign='left';
-  ctx.fillText('Ks='+horton.fc.toFixed(2),ml+3,yIR(horton.fc/60)-4);
+  const gSM = ctx.createLinearGradient(ml, 0, ml + pw, 0);
+  gSM.addColorStop(0, 'rgba(59,130,246,0.05)');
+  gSM.addColorStop(1, 'rgba(59,130,246,0.45)');
+  ctx.fillStyle = gSM;
+  ctx.fill();
 
-  // f(t) real-time line
-  ctx.beginPath();ft.forEach((v,i)=>{const y=yIR(v);if(i===0)ctx.moveTo(xOf(i),y);else ctx.lineTo(xOf(i),y);});
-  ctx.strokeStyle='#2dd4bf';ctx.lineWidth=2.5;ctx.stroke();
+  // SM Line
+  ctx.beginPath();
+  ctx.moveTo(smP[0].x, smP[0].y);
+  smP.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.strokeStyle = '#60a5fa';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
 
-  // End dot
-  const lv=ft[pts-1];
-  ctx.beginPath();ctx.arc(xOf(pts-1),yIR(lv),5,0,Math.PI*2);
-  ctx.fillStyle='#0f766e';ctx.fill();ctx.strokeStyle='#5eead4';ctx.lineWidth=2;ctx.stroke();
-  ctx.fillStyle='#ccfbf1';ctx.textAlign='left';ctx.font='bold 9px monospace';
-  ctx.fillText(lv.toFixed(3)+' mm/s',xOf(pts-1)+7,yIR(lv));
+  // SM Node Dots
+  smP.forEach((p, i) => {
+    const v = smVals[i];
+    ctx.beginPath(); ctx.arc(p.x, p.y, 5.5, 0, Math.PI * 2);
+    ctx.fillStyle = v >= 90 ? '#f43f5e' : v >= 75 ? '#3b82f6' : v >= 25 ? '#0ea5e9' : '#f59e0b';
+    ctx.fill();
+    ctx.strokeStyle = '#e0f2fe'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#e0f2fe'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 10px monospace';
+    ctx.fillText(`${v.toFixed(1)}%`, p.x + 8, p.y);
+  });
 
-  // Y axis (IR)
-  [0,maxIR*.5,maxIR].forEach(v=>{
-    ctx.fillStyle='#64748b';ctx.textAlign='right';ctx.font='9px monospace';
-    ctx.fillText(v.toFixed(3),ml-4,yIR(v)+3);
+  // ST Line
+  const stP = stVals.map((v, i) => ({ x: xST(v), y: yD(DEPTHS[i]) }));
+  ctx.beginPath();
+  ctx.moveTo(stP[0].x, stP[0].y);
+  stP.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.strokeStyle = '#fb923c';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // ST Node Dots
+  stP.forEach((p, i) => {
+    ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#c2410c'; ctx.fill();
+    ctx.strokeStyle = '#fed7aa'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#fed7aa'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.font = 'bold 10px monospace';
+    ctx.fillText(`${stVals[i].toFixed(1)}°C`, p.x - 8, p.y);
+  });
+
+  // Top Axis (ST Labels)
+  for (let i = 0; i <= 4; i++) {
+    const v = stMin + i * (stMax - stMin) / 4;
+    const x = xST(v);
+    ctx.fillStyle = '#fb923c'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.font = '10px monospace';
+    ctx.fillText(`${v.toFixed(0)}°C`, x, mt - 18);
+  }
+
+  // Titles
+  ctx.fillStyle = '#60a5fa'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('Kelembaban Tanah SM (%)', ml + pw / 2, mt + ph + 24);
+  ctx.fillStyle = '#fb923c'; ctx.textBaseline = 'bottom';
+  ctx.fillText('Suhu Tanah ST (°C)', ml + pw / 2, mt - 28);
+}
+
+function drawInfChart() {
+  const { ctx, w, h } = setupCanvas('infChart');
+  const ml = 54, mr = 24, mt = 30, mb = 40;
+  const pw = w - ml - mr, ph = h - mt - mb;
+  const N = BUFFER_SIZE;
+
+  const raVals = timeSeries.ra;
+  const ftVals = timeSeries.ft;
+
+  const maxRA = Math.max(20, ...raVals) * 1.15;
+  const maxIR = Math.max(0.12, ...ftVals, activeHorton.f0 / 60 * 1.1);
+
+  const xOf = i => ml + (i / (N - 1)) * pw;
+  const yIR = v => mt + (ph * 0.48) + (ph * 0.52) * (1 - v / maxIR);
+  const yRA = v => mt + (v / maxRA) * (ph * 0.42);
+
+  // Background Gridlines
+  ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+  for (let r = 0; r <= 4; r++) {
+    const y = mt + r * (ph / 4);
+    ctx.beginPath(); ctx.moveTo(ml, y); ctx.lineTo(ml + pw, y); ctx.stroke();
+  }
+  for (let c = 0; c <= 5; c++) {
+    const x = ml + (c / 5) * pw;
+    ctx.beginPath(); ctx.moveTo(x, mt); ctx.lineTo(x, mt + ph); ctx.stroke();
+    ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.font = '10px monospace';
+    ctx.fillText(`−${(60 - c * 12)}m`, x, mt + ph + 14);
+  }
+
+  // Hyetograph Midline Divider
+  ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(ml, mt + ph * 0.46); ctx.lineTo(ml + pw, mt + ph * 0.46); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#64748b'; ctx.font = '10px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('▲ Hujan RA (mm/min)', ml + 6, mt + ph * 0.46 - 6);
+  ctx.fillText('▼ Infiltrasi f(t) (mm/s)', ml + 6, mt + ph * 0.46 + 13);
+
+  // Inverted Hyetograph (RA Precipitation Bars)
+  const barW = (pw / N) * 0.75;
+  raVals.forEach((v, i) => {
+    const x = xOf(i);
+    const bh = (v / maxRA) * (ph * 0.42);
+    ctx.fillStyle = v >= 10.0 ? 'rgba(59,130,246,0.9)' : 'rgba(59,130,246,0.65)';
+    ctx.fillRect(x - barW / 2, mt + ph * 0.46 - bh, barW, bh);
+  });
+
+  // Hortonian Runoff Shading (Where I > f(t))
+  raVals.forEach((v, i) => {
+    const rain_mm_s = v / 60.0;
+    const f_now = ftVals[i];
+    if (rain_mm_s > f_now) {
+      const topY = yIR(rain_mm_s);
+      const botY = yIR(f_now);
+      ctx.fillStyle = 'rgba(244,63,94,0.22)';
+      ctx.fillRect(xOf(i) - (pw / N) / 2, topY, pw / N, Math.max(2, botY - topY));
+    }
+  });
+
+  // Active Horton Baseline Curve (Dashed Gray)
+  ctx.beginPath();
+  for (let i = 0; i < N; i++) {
+    const expectedRate_mm_s = hF(i, activeHorton) / 60.0;
+    const y = yIR(expectedRate_mm_s);
+    if (i === 0) ctx.moveTo(xOf(i), y);
+    else ctx.lineTo(xOf(i), y);
+  }
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
+
+  // fc Steady Line (Asymptotic saturated capacity Ks)
+  const fcY = yIR(activeHorton.fc / 60.0);
+  ctx.beginPath(); ctx.moveTo(ml, fcY); ctx.lineTo(ml + pw, fcY);
+  ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = '#d97706'; ctx.font = '9px monospace'; ctx.textAlign = 'left';
+  ctx.fillText(`Ks=${activeHorton.fc.toFixed(2)} mm/min`, ml + 4, fcY - 4);
+
+  // Real-Time Sensor Infiltration Rate f(t) Line
+  ctx.beginPath();
+  ftVals.forEach((v, i) => {
+    const y = yIR(v);
+    if (i === 0) ctx.moveTo(xOf(i), y);
+    else ctx.lineTo(xOf(i), y);
+  });
+  ctx.strokeStyle = '#2dd4bf'; ctx.lineWidth = 2.5; ctx.stroke();
+
+  // Latest Point Node Dot
+  const lastVal = ftVals[N - 1];
+  const lastX = xOf(N - 1);
+  const lastY = yIR(lastVal);
+  ctx.beginPath(); ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#0f766e'; ctx.fill();
+  ctx.strokeStyle = '#5eead4'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#ccfbf1'; ctx.textAlign = 'right'; ctx.font = 'bold 10px monospace';
+  ctx.fillText(`${lastVal.toFixed(3)} mm/s`, lastX - 8, lastY - 6);
+
+  // Y Axis Ticks (IR)
+  [0, maxIR * 0.5, maxIR].forEach(v => {
+    ctx.fillStyle = '#64748b'; ctx.textAlign = 'right'; ctx.font = '9px monospace';
+    ctx.fillText(v.toFixed(3), ml - 6, yIR(v) + 3);
   });
 }
 
-// ─── Redraw both main charts ─────────────────────────
-function redrawMain(){ drawSoilChart(); drawInfChart(); }
-
-// ══════════ HORTON FITTING PAGE ══════════════════════
-const DEMO=[{t:0,f:8.5},{t:5,f:6.2},{t:10,f:4.8},{t:15,f:3.6},{t:20,f:2.9},{t:30,f:2.1},{t:45,f:1.4},{t:60,f:1.1},{t:90,f:0.98},{t:120,f:0.96}];
-
-function renderTable(){
-  const tb=document.getElementById('tBody');
-  tb.innerHTML=surveyData.map((r,i)=>`
-    <tr>
-      <td class="py-1.5 pr-2 text-slate-400 text-xs">${i+1}</td>
-      <td class="py-1.5 pr-2">
+// ─── 6. Halaman Horton Survey & Fitting (ASTM D3385) ───────────
+function renderTable() {
+  const tb = document.getElementById('tBody');
+  tb.innerHTML = surveyData.map((r, i) => `
+    <tr class="hover:bg-slate-900/60 transition">
+      <td class="py-2 px-3 text-slate-400 font-mono text-xs">${i + 1}</td>
+      <td class="py-2 px-3">
         <input type="number" value="${r.t}" min="0" step="1"
-          class="w-20 bg-slate-800 border border-slate-700 rounded-md px-2 py-1 text-sm font-mono text-white focus:outline-none focus:border-cyan-500"
+          class="w-24 bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1 text-sm font-mono text-white focus:outline-none focus:border-cyan-500"
           onchange="surveyData[${i}].t=parseFloat(this.value)||0"/>
       </td>
-      <td class="py-1.5 pr-2">
+      <td class="py-2 px-3">
         <input type="number" value="${r.f}" min="0" step="0.01"
-          class="w-24 bg-slate-800 border border-slate-700 rounded-md px-2 py-1 text-sm font-mono text-white focus:outline-none focus:border-cyan-500"
+          class="w-28 bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1 text-sm font-mono text-white focus:outline-none focus:border-cyan-500"
           onchange="surveyData[${i}].f=parseFloat(this.value)||0"/>
       </td>
-      <td class="py-1.5">
-        <button onclick="surveyData.splice(${i},1);renderTable();" class="text-rose-400 hover:text-rose-300 text-xs px-1">✕</button>
+      <td class="py-2 px-3 text-center">
+        <button onclick="surveyData.splice(${i},1);renderTable();" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1 rounded bg-rose-950/30 hover:bg-rose-900/40 transition">✕</button>
       </td>
     </tr>`).join('');
 }
 
-function addRow()    { surveyData.push({t:0,f:0}); renderTable(); }
-function loadDemo()  { surveyData=[...DEMO.map(r=>({...r}))]; renderTable(); document.getElementById('fitResult').classList.add('hidden'); document.getElementById('chartEmpty').classList.remove('hidden'); }
-function clearData() { surveyData=[]; renderTable(); document.getElementById('fitResult').classList.add('hidden'); document.getElementById('chartEmpty').classList.remove('hidden'); }
+function addRow() { surveyData.push({ t: 0, f: 0 }); renderTable(); }
+function clearData() {
+  surveyData = [];
+  renderTable();
+  document.getElementById('fitResult').classList.add('hidden');
+  document.getElementById('chartEmpty').classList.remove('hidden');
+}
 
-function doFit(){
-  if(surveyData.length<3){alert('Minimal 3 titik data diperlukan.');return;}
-  const fObs=surveyData.map(r=>r.f), tObs=surveyData.map(r=>r.t);
-  const fc=Math.min(...fObs)*.95;
-  let sumT=0,sumY=0,sumT2=0,sumTY=0,n=0;
-  tObs.forEach((t,i)=>{const df=fObs[i]-fc;if(df>1e-6){const y=Math.log(df);sumT+=t;sumY+=y;sumT2+=t*t;sumTY+=t*y;n++;}});
-  const k=-(n*sumTY-sumT*sumY)/(n*sumT2-sumT*sumT)||.05;
-  const f0=Math.exp((sumY-(-k)*sumT)/n)+fc;
+function loadPreset(key) {
+  const mapKey = key === 'citarum' ? 'HS-CTM-01' : key === 'jatinangor' ? 'HS-JTG-02' : 'HS-GRT-03';
+  surveyData = [...STATIONS[mapKey].surveyPreset.map(r => ({ ...r }))];
+  renderTable();
+  document.getElementById('fitResult').classList.add('hidden');
+  document.getElementById('chartEmpty').classList.remove('hidden');
+  showToast('📂 Data Presets Lapangan Dimuat', `Data ASTM D3385 untuk ${STATIONS[mapKey].name} berhasil disiapkan.`);
+}
+
+function doFit() {
+  if (surveyData.length < 3) {
+    alert('Minimal 3 titik data diperlukan untuk regresi kurva Horton.');
+    return;
+  }
+
+  // Urutkan data berdasarkan waktu
+  surveyData.sort((a, b) => a.t - b.t);
+  const fObs = surveyData.map(r => r.f);
+  const tObs = surveyData.map(r => r.t);
+
+  // Estimasi fc dan f0
+  const minF = Math.min(...fObs);
+  const maxF = Math.max(...fObs);
+  const fc = Math.max(0.01, minF * 0.95);
+
+  let sumT = 0, sumY = 0, sumT2 = 0, sumTY = 0, n = 0;
+  tObs.forEach((t, i) => {
+    const df = fObs[i] - fc;
+    if (df > 1e-6) {
+      const y = Math.log(df);
+      sumT += t; sumY += y; sumT2 += t * t; sumTY += t * y; n++;
+    }
+  });
+
+  const denom = (n * sumT2 - sumT * sumT);
+  const slope = denom !== 0 ? (n * sumTY - sumT * sumY) / denom : -0.05;
+  const intercept = (sumY - slope * sumT) / (n || 1);
+
+  const k = Math.max(0.001, -slope);
+  const f0 = fc + Math.exp(intercept);
 
   // R²
-  const fPred=tObs.map(t=>fc+(f0-fc)*Math.exp(-k*t));
-  const fMean=fObs.reduce((a,b)=>a+b)/fObs.length;
-  const ssTot=fObs.reduce((a,v)=>a+(v-fMean)**2,0);
-  const ssRes=fObs.reduce((a,v,i)=>a+(v-fPred[i])**2,0);
-  const r2=Math.max(0,1-ssRes/ssTot);
+  const fPred = tObs.map(t => fc + (f0 - fc) * Math.exp(-k * t));
+  const fMean = fObs.reduce((a, b) => a + b, 0) / fObs.length;
+  const ssTot = fObs.reduce((a, v) => a + (v - fMean) ** 2, 0);
+  const ssRes = fObs.reduce((a, v, i) => a + (v - fPred[i]) ** 2, 0);
+  const r2 = Math.max(0, Math.min(1.0, 1.0 - (ssRes / (ssTot || 1))));
 
-  // Store fitted params
-  horton={f0,fc,k};
+  // Update State Hasil Fitting
+  window.lastFittedParams = { f0, fc, k, r2 };
 
-  // Display
-  const el=(id,v)=>{document.getElementById(id).innerText=v;};
-  el('f0-val',f0.toFixed(3)+' mm/min'); el('fc-val',fc.toFixed(3)+' mm/min'); el('k-val',k.toFixed(4)+' min⁻¹');
-  el('r2-val',r2.toFixed(4)); el('eq-fc',fc.toFixed(3)); el('eq-f0',f0.toFixed(3)); el('eq-fc2',fc.toFixed(3)); el('eq-k',k.toFixed(4));
+  document.getElementById('f0-val').innerText = `${f0.toFixed(3)} mm/min`;
+  document.getElementById('fc-val').innerText = `${fc.toFixed(3)} mm/min`;
+  document.getElementById('k-val').innerText  = `${k.toFixed(4)} min⁻¹`;
+  document.getElementById('r2-val').innerText = r2.toFixed(4);
+
+  document.getElementById('eq-fc').innerText  = fc.toFixed(3);
+  document.getElementById('eq-f0').innerText  = f0.toFixed(3);
+  document.getElementById('eq-fc2').innerText = fc.toFixed(3);
+  document.getElementById('eq-k').innerText   = k.toFixed(4);
+
   document.getElementById('fitResult').classList.remove('hidden');
   document.getElementById('chartEmpty').classList.add('hidden');
+
   drawHorton();
+  showToast('🔍 Fitting Horton Selesai', `Regresi berhasil dengan R² = ${r2.toFixed(4)}`);
 }
 
-function applyBaseline(){
+function applyBaseline() {
+  if (!window.lastFittedParams) return;
+  const p = window.lastFittedParams;
+  activeHorton = { ...p };
+  STATIONS[curStationId].horton = { ...p };
+
+  // Jika server mode aktif, kirim ke API backend
+  if (isServerConnectedMode) {
+    fetch(`http://localhost:8000/api/stations/${curStationId}/horton/fit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ survey_data: surveyData })
+    }).then(res => res.json()).then(data => {
+      console.log('Baseline saved to DB:', data);
+    }).catch(err => {
+      console.warn('Could not persist to backend:', err);
+    });
+  }
+
+  showToast('📡 Baseline Diterapkan', `Parameter Horton Stasiun ${curStationId} berhasil diaktifkan!`);
   goPage('main');
-  setTimeout(()=>{updateKPIs();redrawMain();},100);
+  setTimeout(() => { updateDashboardUI(); }, 120);
 }
 
-function drawHorton(){
-  const{ctx,w,h}=setupCanvas('hortonChart');
-  if(!surveyData.length)return;
-  const ml=54,mr=24,mt=28,mb=38; const pw=w-ml-mr,ph=h-mt-mb;
-  const tMax=Math.max(...surveyData.map(r=>r.t),120);
-  const fMax=Math.max(...surveyData.map(r=>r.f),horton.f0)*1.1;
-  const xOf=t=>ml+(t/tMax)*pw;
-  const yOf=f=>mt+ph-(f/fMax)*ph;
+function drawHorton() {
+  const { ctx, w, h } = setupCanvas('hortonChart');
+  if (!surveyData.length) return;
+  const p = window.lastFittedParams || activeHorton;
 
-  // Grid
-  [0,.25,.5,.75,1].forEach(r=>{
-    const y=mt+r*ph,x=ml+r*pw;
-    ctx.strokeStyle='#1e293b';ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(ml+pw,y);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,mt+ph);ctx.stroke();
-    ctx.fillStyle='#475569';ctx.textAlign='right';ctx.font='10px monospace';ctx.fillText((fMax*(1-r)).toFixed(2),ml-5,y+3);
-    ctx.fillStyle='#475569';ctx.textAlign='center';ctx.fillText(Math.round(tMax*r)+'m',x,mt+ph+14);
+  const ml = 58, mr = 24, mt = 30, mb = 40;
+  const pw = w - ml - mr, ph = h - mt - mb;
+  const tMax = Math.max(...surveyData.map(r => r.t), 120);
+  const fMax = Math.max(...surveyData.map(r => r.f), p.f0) * 1.15;
+
+  const xOf = t => ml + (t / tMax) * pw;
+  const yOf = f => mt + ph - (f / fMax) * ph;
+
+  // Gridlines
+  [0, 0.25, 0.5, 0.75, 1].forEach(r => {
+    const y = mt + r * ph, x = ml + r * pw;
+    ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(ml, y); ctx.lineTo(ml + pw, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, mt); ctx.lineTo(x, mt + ph); ctx.stroke();
+    ctx.fillStyle = '#64748b'; ctx.textAlign = 'right'; ctx.font = '10px monospace';
+    ctx.fillText((fMax * (1 - r)).toFixed(2), ml - 6, y + 3);
+    ctx.fillStyle = '#64748b'; ctx.textAlign = 'center';
+    ctx.fillText(`${Math.round(tMax * r)}m`, x, mt + ph + 14);
   });
 
-  // fc line
-  ctx.beginPath();ctx.moveTo(ml,yOf(horton.fc));ctx.lineTo(ml+pw,yOf(horton.fc));
-  ctx.strokeStyle='#d97706';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle='#d97706';ctx.font='9px monospace';ctx.textAlign='left';
-  ctx.fillText('fc=Ks='+horton.fc.toFixed(3),ml+4,yOf(horton.fc)-5);
+  // Asymptotic fc Line
+  const fcY = yOf(p.fc);
+  ctx.beginPath(); ctx.moveTo(ml, fcY); ctx.lineTo(ml + pw, fcY);
+  ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = '#d97706'; ctx.font = '10px monospace'; ctx.textAlign = 'left';
+  ctx.fillText(`fc ≡ Ks = ${p.fc.toFixed(3)} mm/min`, ml + 6, fcY - 6);
 
-  // Curve + fill
-  const N=200;
+  // Shaded Curve
+  const N = 200;
   ctx.beginPath();
-  for(let i=0;i<=N;i++){const t=(i/N)*tMax,fv=horton.fc+(horton.f0-horton.fc)*Math.exp(-horton.k*t);if(i===0)ctx.moveTo(xOf(t),yOf(fv));else ctx.lineTo(xOf(t),yOf(fv));}
-  ctx.lineTo(ml+pw,yOf(horton.fc));ctx.lineTo(ml,yOf(horton.fc));ctx.closePath();
-  ctx.fillStyle='rgba(251,146,60,.1)';ctx.fill();
-  ctx.beginPath();
-  for(let i=0;i<=N;i++){const t=(i/N)*tMax,fv=horton.fc+(horton.f0-horton.fc)*Math.exp(-horton.k*t);if(i===0)ctx.moveTo(xOf(t),yOf(fv));else ctx.lineTo(xOf(t),yOf(fv));}
-  ctx.strokeStyle='#fb923c';ctx.lineWidth=2.5;ctx.stroke();
+  for (let i = 0; i <= N; i++) {
+    const t = (i / N) * tMax;
+    const fv = p.fc + (p.f0 - p.fc) * Math.exp(-p.k * t);
+    if (i === 0) ctx.moveTo(xOf(t), yOf(fv));
+    else ctx.lineTo(xOf(t), yOf(fv));
+  }
+  ctx.lineTo(ml + pw, yOf(p.fc)); ctx.lineTo(ml, yOf(p.fc)); ctx.closePath();
+  ctx.fillStyle = 'rgba(251,146,60,0.12)'; ctx.fill();
 
-  // Data dots
-  surveyData.forEach(r=>{
-    const x=xOf(r.t),y=yOf(r.f);
-    ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);
-    ctx.fillStyle='#2563eb';ctx.fill();ctx.strokeStyle='#93c5fd';ctx.lineWidth=1.5;ctx.stroke();
+  // Orange Fitted Curve Line
+  ctx.beginPath();
+  for (let i = 0; i <= N; i++) {
+    const t = (i / N) * tMax;
+    const fv = p.fc + (p.f0 - p.fc) * Math.exp(-p.k * t);
+    if (i === 0) ctx.moveTo(xOf(t), yOf(fv));
+    else ctx.lineTo(xOf(t), yOf(fv));
+  }
+  ctx.strokeStyle = '#fb923c'; ctx.lineWidth = 2.5; ctx.stroke();
+
+  // Measured Field Data Points (Blue Dots)
+  surveyData.forEach(r => {
+    const x = xOf(r.t), y = yOf(r.f);
+    ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#2563eb'; ctx.fill();
+    ctx.strokeStyle = '#93c5fd'; ctx.lineWidth = 1.5; ctx.stroke();
   });
 
-  // Axis labels
-  ctx.fillStyle='#94a3b8';ctx.textAlign='center';ctx.font='11px sans-serif';
-  ctx.fillText('Waktu (menit)',ml+pw/2,mt+ph+28);
-  ctx.save();ctx.translate(14,mt+ph/2);ctx.rotate(-Math.PI/2);
-  ctx.fillText('f(t) [mm/menit]',0,0);ctx.restore();
+  // Axis Labels
+  ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.font = '11px sans-serif';
+  ctx.fillText('Waktu Pengujian t (menit)', ml + pw / 2, mt + ph + 28);
+  ctx.save(); ctx.translate(16, mt + ph / 2); ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Laju Infiltrasi f(t) [mm/menit]', 0, 0); ctx.restore();
 }
 
-// ─── Clock ───────────────────────────────────────────
-function tick(){document.getElementById('clock').innerText=new Date().toLocaleTimeString('id-ID');}
-tick(); setInterval(tick,1000);
+// ─── 7. Navigation, Scenarios, and Controls ───────────────────
+function goPage(p) {
+  ['main', 'horton'].forEach(k => {
+    document.getElementById('page-' + k).classList.toggle('hidden', k !== p);
+    const nb = document.getElementById('nav-' + k);
+    nb.classList.toggle('nav-active', k === p);
+    nb.classList.toggle('nav-inactive', k !== p);
+  });
+  document.getElementById('scenario-bar').classList.toggle('hidden', p !== 'main');
+  if (p === 'main') setTimeout(updateDashboardUI, 80);
+  if (p === 'horton') setTimeout(() => { if (surveyData.length) drawHorton(); }, 80);
+}
 
-// ─── Init ────────────────────────────────────────────
-loadDemo();
-doFit();
-setScenario('normal');
-window.addEventListener('resize',()=>{
-  if(!document.getElementById('page-main').classList.contains('hidden')) redrawMain();
-  else if(surveyData.length) drawHorton();
+function setScenario(sc) {
+  curScenario = sc;
+  document.querySelectorAll('.sc').forEach(b => {
+    b.classList.remove('sc-active'); b.classList.add('sc-inactive');
+  });
+  document.getElementById('sc-' + sc).classList.remove('sc-inactive');
+  document.getElementById('sc-' + sc).classList.add('sc-active');
+
+  const names = {
+    normal: '☀️ Normal / Seimbang',
+    flashflood: '⛈️ Banjir Hortonian Masif',
+    landslide: '⛰️ Risiko Longsor Dangkal',
+    drought: '🌾 Kemarau Defisit Kritis'
+  };
+  showToast('⚙️ Skenario Bencana Diaktifkan', names[sc]);
+  initTimeSeriesBuffer();
+  updateDashboardUI();
+}
+
+function onStationChange(stId) {
+  curStationId = stId;
+  const st = STATIONS[stId];
+  activeHorton = { ...st.horton };
+  document.getElementById('station-soil-badge').innerText = st.soilTexture;
+
+  showToast('📍 Stasiun Dipilih', `${st.name} (${st.basin})`);
+  initTimeSeriesBuffer();
+  updateDashboardUI();
+}
+
+function togglePlayPause() {
+  isSimulationPlaying = !isSimulationPlaying;
+  document.getElementById('play-pause-icon').innerText = isSimulationPlaying ? '⏸️' : '▶️';
+  document.getElementById('play-pause-text').innerText = isSimulationPlaying ? 'Jeda' : 'Lanjut';
+  showToast(isSimulationPlaying ? '▶️ Simulasi Berjalan' : '⏸️ Simulasi Dijeda', isSimulationPlaying ? 'Data bergerak per 2.5s' : 'Data dibekukan untuk analisis');
+}
+
+function stepSimulation() {
+  simTick();
+  showToast('⏩ +1 Menit', 'Waktu telemetri dimajukan 1 langkah.');
+}
+
+function resetSimulation() {
+  initTimeSeriesBuffer();
+  updateDashboardUI();
+  showToast('🔄 Reset', 'Kondisi awal telemetri dipulihkan.');
+}
+
+function toggleServerMode() {
+  isServerConnectedMode = !isServerConnectedMode;
+  const btn = document.getElementById('btn-mode-toggle');
+  const icon = document.getElementById('mode-icon');
+  const text = document.getElementById('mode-text');
+
+  if (isServerConnectedMode) {
+    // Attempt ping to FastAPI backend
+    fetch('http://localhost:8000/api/health')
+      .then(res => res.json())
+      .then(data => {
+        btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-semibold transition text-xs bg-cyan-950/60 border-cyan-500 text-cyan-300 shadow-md shadow-cyan-500/20';
+        icon.innerText = '🌐';
+        text.innerText = 'Mode Server (Terhubung API)';
+        showToast('🌐 Terhubung ke Backend API', 'Dashboard sinkron dengan FastAPI & TimescaleDB.');
+      })
+      .catch(err => {
+        isServerConnectedMode = false;
+        alert('Server API lokal (http://localhost:8000) tidak terdeteksi!\nPastikan Anda telah menjalankan: docker compose up');
+      });
+  } else {
+    btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-semibold transition text-xs bg-emerald-950/40 border-emerald-600/50 text-emerald-300 hover:bg-emerald-900/40';
+    icon.innerText = '🟢';
+    text.innerText = 'Mode Simulasi (Demo)';
+    showToast('🟢 Mode Demo Mandiri', 'Dashboard berjalan offline dengan simulator internal.');
+  }
+}
+
+function handleExportData() {
+  if (isServerConnectedMode) {
+    window.location.href = `http://localhost:8000/api/stations/${curStationId}/export`;
+    showToast('📥 Mengunduh CSV', 'Mengunduh riwayat telemetri dari database.');
+    return;
+  }
+
+  // Client-Side CSV Generator
+  let csv = 'timestamp,station_id,rain_mm_min,ponding_depth_mm,infiltration_rate_mm_s,sm_10cm,sm_20cm,sm_30cm,sm_40cm,pvolt_v,ptemp_c\n';
+  const now = Date.now();
+  for (let i = 0; i < BUFFER_SIZE; i++) {
+    const ts = new Date(now - (BUFFER_SIZE - i) * 60000).toISOString();
+    csv += `${ts},${curStationId},${timeSeries.ra[i]},${timeSeries.h[i]},${timeSeries.ft[i]},${timeSeries.sm[0][i]},${timeSeries.sm[1][i]},${timeSeries.sm[2][i]},${timeSeries.sm[3][i]},${timeSeries.pvolt},${timeSeries.ptemp}\n`;
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `hydrosense_sim_${curStationId}_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('📥 Berhasil Ekspor CSV', `${BUFFER_SIZE} baris telemetri simulasi telah diunduh.`);
+}
+
+function showToast(title, msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-title').innerText = title;
+  document.getElementById('toast-msg').innerText = msg;
+  t.classList.remove('translate-x-32', 'opacity-0', 'pointer-events-none');
+  setTimeout(() => {
+    t.classList.add('translate-x-32', 'opacity-0', 'pointer-events-none');
+  }, 3200);
+}
+
+// ─── 8. Clock & Initialization ────────────────────────────────
+function tickClock() {
+  document.getElementById('clock').innerText = new Date().toLocaleTimeString('id-ID');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  // Muat Preset Citarum
+  loadPreset('citarum');
+  doFit();
+
+  // Inisialisasi Buffer & Start Simulation Loop
+  initTimeSeriesBuffer();
+  updateDashboardUI();
+
+  simIntervalTimer = setInterval(simTick, 2500);
+
+  window.addEventListener('resize', () => {
+    if (!document.getElementById('page-main').classList.contains('hidden')) {
+      drawSoilChart();
+      drawInfChart();
+    } else if (surveyData.length) {
+      drawHorton();
+    }
+  });
 });
 </script>
 </body>

@@ -1,0 +1,905 @@
+version: 2
+config:
+  derived:
+    slot_0:
+      id: 0
+      enabled: false
+      label: ""
+      unit: ""
+      template: 0
+      formula: ""
+      inputs: {}
+    slot_1:
+      id: 1
+      enabled: false
+      label: ""
+      unit: ""
+      template: 0
+      formula: ""
+      inputs: {}
+    slot_2:
+      id: 2
+      enabled: false
+      label: ""
+      unit: ""
+      template: 0
+      formula: ""
+      inputs: {}
+    slot_3:
+      id: 3
+      enabled: false
+      label: ""
+      unit: ""
+      template: 0
+      formula: ""
+      inputs: {}
+    slot_4:
+      id: 4
+      enabled: false
+      label: ""
+      unit: ""
+      template: 0
+      formula: ""
+      inputs: {}
+    slot_5:
+      id: 5
+      enabled: false
+      label: ""
+      unit: ""
+      template: 0
+      formula: ""
+      inputs: {}
+    slot_6:
+      id: 6
+      enabled: false
+      label: ""
+      unit: ""
+      template: 0
+      formula: ""
+      inputs: {}
+    slot_7:
+      id: 7
+      enabled: false
+      label: ""
+      unit: ""
+      template: 0
+      formula: ""
+      inputs: {}
+  analog:
+    sampling_interval_ms: 1000
+    channels:
+      ain_0:
+        enabled: true
+        label: water_level
+        unit: mm
+        mode: 100
+        input_positive: 2
+        input_negative: 10
+        gain: 0
+        excitation_current_ua: 0
+        excitation_voltage_mv: 0
+        resistance_reference: 0
+        low_pass_01hz_enabled: false
+        settle_time_ms: 5
+        multiplier: -0.04
+        offset: 200
+      ain_1:
+        enabled: false
+        label: ""
+        unit: ""
+        mode: 101
+        input_positive: 2
+        input_negative: 3
+        gain: 1
+        excitation_current_ua: 0
+        excitation_voltage_mv: 0
+        resistance_reference: 0
+        low_pass_01hz_enabled: false
+        settle_time_ms: 20
+        multiplier: 1
+        offset: 0
+      ain_2:
+        enabled: false
+        label: ""
+        unit: ""
+        mode: 101
+        input_positive: 2
+        input_negative: 3
+        gain: 1
+        excitation_current_ua: 0
+        excitation_voltage_mv: 0
+        resistance_reference: 0
+        low_pass_01hz_enabled: false
+        settle_time_ms: 20
+        multiplier: 1
+        offset: 0
+      ain_3:
+        enabled: false
+        label: ""
+        unit: ""
+        mode: 101
+        input_positive: 2
+        input_negative: 3
+        gain: 1
+        excitation_current_ua: 0
+        excitation_voltage_mv: 0
+        resistance_reference: 0
+        low_pass_01hz_enabled: false
+        settle_time_ms: 20
+        multiplier: 1
+        offset: 0
+      ain_4:
+        enabled: false
+        label: ""
+        unit: ""
+        mode: 101
+        input_positive: 2
+        input_negative: 3
+        gain: 1
+        excitation_current_ua: 0
+        excitation_voltage_mv: 0
+        resistance_reference: 0
+        low_pass_01hz_enabled: false
+        settle_time_ms: 20
+        multiplier: 1
+        offset: 0
+      ain_5:
+        enabled: false
+        label: ""
+        unit: ""
+        mode: 101
+        input_positive: 2
+        input_negative: 3
+        gain: 1
+        excitation_current_ua: 0
+        excitation_voltage_mv: 0
+        resistance_reference: 0
+        low_pass_01hz_enabled: false
+        settle_time_ms: 20
+        multiplier: 1
+        offset: 0
+  table_data:
+    channels:
+      ain_0:
+        name: water_level
+        unit: mm
+        group: Analog
+        aggregation: 0
+        acquisition: sampled
+        expected_interval_ms: 1000
+      serial_1:
+        name: humidity_1
+        unit: "%"
+        group: soil_1
+        aggregation: 0
+        acquisition: polled
+        expected_interval_ms: 1000
+      serial_2:
+        name: temp_1
+        unit: °C
+        group: soil_1
+        aggregation: 0
+        acquisition: polled
+        expected_interval_ms: 1000
+      serial_3:
+        name: humidity_2
+        unit: "%"
+        group: soil_2
+        aggregation: 0
+        acquisition: polled
+        expected_interval_ms: 1000
+      serial_8:
+        name: temp_2
+        unit: °C
+        group: soil_2
+        aggregation: 0
+        acquisition: polled
+        expected_interval_ms: 1000
+      serial_4:
+        name: humidity_3
+        unit: "%"
+        group: soil_3
+        aggregation: 0
+        acquisition: polled
+        expected_interval_ms: 1000
+      serial_6:
+        name: temp_3
+        unit: °C
+        group: soil_3
+        aggregation: 0
+        acquisition: polled
+        expected_interval_ms: 1000
+      serial_5:
+        name: humidity_4
+        unit: "%"
+        group: soil_4
+        aggregation: 0
+        acquisition: polled
+        expected_interval_ms: 1000
+      serial_7:
+        name: temp_4
+        unit: °C
+        group: soil_4
+        aggregation: 0
+        acquisition: polled
+        expected_interval_ms: 1000
+      serial_9:
+        name: percipitation
+        unit: mm
+        group: Digital
+        aggregation: 2
+        acquisition: triggered
+        expected_interval_ms: 1000
+        fixed: pulse1
+    virtual_values:
+      value_0:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_1:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_2:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_3:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_4:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_5:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_6:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_7:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_8:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_9:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_10:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_11:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_12:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_13:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_14:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_15:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_16:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_17:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_18:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_19:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_20:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_21:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_22:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_23:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_24:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_25:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_26:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_27:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_28:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_29:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_30:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_31:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_32:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+      value_33:
+        enabled: false
+        label: ""
+        value_type: Numeric
+        numeric_value: 0
+        literal_value: ""
+    tables:
+      table_0:
+        interval_sec: 60
+        field_text: ""
+        entries:
+          - metadata: Epoch
+          - channel: ain_0
+            statistic: Mean
+          - channel: serial_9
+            statistic: Last
+          - channel: serial_1
+            statistic: Mean
+          - channel: serial_3
+            statistic: Mean
+          - channel: serial_4
+            statistic: Mean
+          - channel: serial_5
+            statistic: Mean
+          - channel: serial_2
+            statistic: Mean
+          - channel: serial_8
+            statistic: Mean
+          - channel: serial_6
+            statistic: Mean
+          - channel: serial_7
+            statistic: Mean
+      table_1:
+        interval_sec: 60
+        field_text: ""
+        entries: []
+      table_2:
+        interval_sec: 60
+        field_text: ""
+        entries: []
+  http:
+    - enabled: false
+      format: json
+      delimiter: 44
+      include_header: false
+      method: post
+      url: ""
+      timeout_sec: 10
+      success_codes:
+        - 200
+        - 201
+        - 202
+        - 204
+      retry_backoff_sec: 10
+      template_mode: query
+      query_template: ""
+      payload_template: ""
+      content_type: application/json
+      auth_mode: none
+      auth_username: ""
+      auth_password: ""
+      auth_header_name: ""
+      auth_header_value: ""
+      headers:
+        - key: ""
+          value: ""
+      decimal_places: 4
+      null_mode: literal
+      null_literal: "null"
+      custom_ca_pem: ""
+      table: table_0
+    - enabled: false
+      format: json
+      delimiter: 44
+      include_header: false
+      method: post
+      url: ""
+      timeout_sec: 10
+      success_codes:
+        - 200
+        - 201
+        - 202
+        - 204
+      retry_backoff_sec: 10
+      template_mode: query
+      query_template: ""
+      payload_template: ""
+      content_type: application/json
+      auth_mode: none
+      auth_username: ""
+      auth_password: ""
+      auth_header_name: ""
+      auth_header_value: ""
+      headers:
+        - key: ""
+          value: ""
+      decimal_places: 4
+      null_mode: literal
+      null_literal: "null"
+      custom_ca_pem: ""
+      table: table_0
+    - enabled: false
+      format: json
+      delimiter: 44
+      include_header: false
+      method: post
+      url: ""
+      timeout_sec: 10
+      success_codes:
+        - 200
+        - 201
+        - 202
+        - 204
+      retry_backoff_sec: 10
+      template_mode: query
+      query_template: ""
+      payload_template: ""
+      content_type: application/json
+      auth_mode: none
+      auth_username: ""
+      auth_password: ""
+      auth_header_name: ""
+      auth_header_value: ""
+      headers:
+        - key: ""
+          value: ""
+      decimal_places: 4
+      null_mode: literal
+      null_literal: "null"
+      custom_ca_pem: ""
+      table: table_0
+  mqtt:
+    - enabled: true
+      tls: false
+      format: json
+      delimiter: 44
+      include_header: false
+      broker: mqtt.brokerexample.com
+      port: 1883
+      client_id: PWS0032232
+      username: ""
+      password: ""
+      topic: pena/data
+      qos: 1
+      retain: false
+      decimal_places: 2
+      table: table_0
+    - enabled: false
+      tls: false
+      format: json
+      delimiter: 44
+      include_header: false
+      broker: ""
+      port: 1883
+      client_id: ""
+      username: ""
+      password: ""
+      topic: ""
+      qos: 1
+      retain: false
+      decimal_places: 4
+      table: table_0
+    - enabled: false
+      tls: false
+      format: json
+      delimiter: 44
+      include_header: false
+      broker: ""
+      port: 1883
+      client_id: ""
+      username: ""
+      password: ""
+      topic: ""
+      qos: 1
+      retain: false
+      decimal_places: 4
+      table: table_0
+  ftp:
+    - enabled: false
+      format: csv
+      server: ""
+      port: 0
+      username: ""
+      password: ""
+      remote_path: ""
+      filename_pattern: ""
+      passive_mode: false
+      delimiter: ","
+      include_header: false
+      decimal_places: 0
+      csv_customize: false
+      csv_builtins: 0
+      csv_channels: []
+      index: 0
+      table: table_0
+    - enabled: false
+      format: csv
+      server: ""
+      port: 0
+      username: ""
+      password: ""
+      remote_path: ""
+      filename_pattern: ""
+      passive_mode: false
+      delimiter: ","
+      include_header: false
+      decimal_places: 0
+      csv_customize: false
+      csv_builtins: 0
+      csv_channels: []
+      index: 1
+      table: table_0
+    - enabled: false
+      format: csv
+      server: ""
+      port: 0
+      username: ""
+      password: ""
+      remote_path: ""
+      filename_pattern: ""
+      passive_mode: false
+      delimiter: ","
+      include_header: false
+      decimal_places: 0
+      csv_customize: false
+      csv_builtins: 0
+      csv_channels: []
+      index: 2
+      table: table_0
+  time:
+    ntp_enabled: true
+    ntp_server: pool.ntp.org
+    ntp_interval_hours: 24
+    timezone_hours: 7
+    timezone_minutes: 0
+    output_schedules:
+      - enabled: false
+        start_hour: 0
+        start_minute: 0
+        stop_hour: 0
+        stop_minute: 0
+        days_mask: 127
+      - enabled: false
+        start_hour: 0
+        start_minute: 0
+        stop_hour: 0
+        stop_minute: 0
+        days_mask: 127
+      - enabled: false
+        start_hour: 0
+        start_minute: 0
+        stop_hour: 0
+        stop_minute: 0
+        days_mask: 127
+      - enabled: false
+        start_hour: 0
+        start_minute: 0
+        stop_hour: 0
+        stop_minute: 0
+        days_mask: 127
+      - enabled: false
+        start_hour: 0
+        start_minute: 0
+        stop_hour: 0
+        stop_minute: 0
+        days_mask: 127
+  network:
+    dhcp_enabled: true
+    ip: 192.168.21.41
+    subnet: 255.255.255.0
+    gateway: 192.168.21.1
+    dns: 8.8.8.8
+    wifi_available: false
+    wifi:
+      enabled: true
+      ssid: ""
+      password: ""
+    apn_available: false
+    apn:
+      enabled: true
+      apn: internet
+      password: ""
+  digital:
+    io:
+      io1_function: 1
+      io2_function: 0
+      io1_cn: percipitation
+      io1_cu: mm
+      io1_ci: 1
+      io1_mapping_id: 9
+      io2_cn: ""
+      io2_cu: ""
+      io2_ci: 2
+      io2_mapping_id: 0
+      io3_io4_function: 1
+      io5_io6_function: 2
+      io34_protocol: 2
+      io56_protocol: 0
+      bridge_protocol: 0
+      rs485_term_rx: false
+      rs485_term_tx: false
+      io1_arg: false
+      io2_arg: false
+      io1_scale: 0.2
+      io1_offset: 0
+      io2_scale: 1
+      io2_offset: 0
+      io3_function: 0
+      io4_function: 0
+      io3_cn: ""
+      io3_cu: ""
+      io4_cn: ""
+      io4_cu: ""
+      io3_ci: 8
+      io4_ci: 9
+      io3_scale: 1
+      io4_scale: 1
+      io3_offset: 0
+      io4_offset: 0
+      io3_output_trigger: 0
+      io4_output_trigger: 0
+      sw12_output_trigger: 0
+      io3_output_default: false
+      io4_output_default: false
+      sw12_output_default: false
+      io3_pwm_frequency_hz: 1000
+      io4_pwm_frequency_hz: 1000
+      io3_pwm_duty_permille: 500
+      io4_pwm_duty_permille: 500
+      io3_rule_on_above: 0
+      io4_rule_on_above: 0
+      sw12_rule_on_above: 0
+      io3_rule_off_below: 0
+      io4_rule_off_below: 0
+      sw12_rule_off_below: 0
+      io3_schedule_id: 0
+      io4_schedule_id: 0
+      sw12_schedule_id: 0
+      io3_rule_source: null
+      io4_rule_source: null
+      sw12_rule_source: null
+    modbus:
+      slaves:
+        - label: soil_1
+          mode: Rtu
+          port: Io34Rs485
+          slave_id: 1
+          baud: 9600
+          parity: None
+          data_bits: 8
+          stop_bits: 1
+          poll_mode: FixedInterval
+          poll_interval_ms: 1000
+          batches:
+            - fc: ReadHolding
+              start_addr: 0
+              qty: 2
+              mappings:
+                - mapping_id: 1
+                  register_offset: 0
+                  channel_label: humidity_1
+                  data_type: U16
+                  scale: 0.1
+                  offset: 0
+                  unit_label: "%"
+                - mapping_id: 2
+                  register_offset: 1
+                  channel_label: temp_1
+                  data_type: S16
+                  scale: 0.1
+                  offset: 0
+                  unit_label: °C
+        - label: soil_2
+          mode: Rtu
+          port: Io34Rs485
+          slave_id: 2
+          baud: 9600
+          parity: None
+          data_bits: 8
+          stop_bits: 1
+          poll_mode: FixedInterval
+          poll_interval_ms: 1000
+          batches:
+            - fc: ReadHolding
+              start_addr: 0
+              qty: 2
+              mappings:
+                - mapping_id: 3
+                  register_offset: 0
+                  channel_label: humidity_2
+                  data_type: U16
+                  scale: 0.1
+                  offset: 0
+                  unit_label: "%"
+                - mapping_id: 8
+                  register_offset: 1
+                  channel_label: temp_2
+                  data_type: S16
+                  scale: 0.1
+                  offset: 0
+                  unit_label: °C
+        - label: soil_3
+          mode: Rtu
+          port: Io34Rs485
+          slave_id: 3
+          baud: 9600
+          parity: None
+          data_bits: 8
+          stop_bits: 1
+          poll_mode: FixedInterval
+          poll_interval_ms: 1000
+          batches:
+            - fc: ReadHolding
+              start_addr: 0
+              qty: 2
+              mappings:
+                - mapping_id: 4
+                  register_offset: 0
+                  channel_label: humidity_3
+                  data_type: U16
+                  scale: 0.1
+                  offset: 0
+                  unit_label: "%"
+                - mapping_id: 6
+                  register_offset: 1
+                  channel_label: temp_3
+                  data_type: S16
+                  scale: 0.1
+                  offset: 0
+                  unit_label: °C
+        - label: soil_4
+          mode: Rtu
+          port: Io34Rs485
+          slave_id: 4
+          baud: 9600
+          parity: None
+          data_bits: 8
+          stop_bits: 1
+          poll_mode: FixedInterval
+          poll_interval_ms: 1000
+          batches:
+            - fc: ReadHolding
+              start_addr: 0
+              qty: 2
+              mappings:
+                - mapping_id: 5
+                  register_offset: 0
+                  channel_label: humidity_4
+                  data_type: U16
+                  scale: 0.1
+                  offset: 0
+                  unit_label: "%"
+                - mapping_id: 7
+                  register_offset: 1
+                  channel_label: temp_4
+                  data_type: S16
+                  scale: 0.1
+                  offset: 0
+                  unit_label: °C
+    sdi12:
+      buses: []
+    ascii:
+      devices: []
+    ve_direct:
+      port: Disabled
+      mappings: []
+    nmea:
+      enabled: false
+      sentence: ZDA
+  device:
+    site_name: ""
+  record:
+    table: table_0

@@ -23,18 +23,29 @@ from ews_rules import evaluate_ews_alerts
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("MQTT_Consumer")
 
+from contextlib import contextmanager
+
 # In-memory station state tracker for ΔH/Δt computation
 station_state = {}
 
+# In-memory alert debouncing tracker: (station_id, alert_type) -> last_trigger_timestamp
+ALERT_COOLDOWN_SECONDS = 300  # 5 minutes
+recent_alerts = {}
 
+
+@contextmanager
 def get_db_connection():
-    return psycopg2.connect(
+    conn = psycopg2.connect(
         host=DB_HOST,
         port=DB_PORT,
         dbname=DB_NAME,
         user=DB_USER,
         password=DB_PASSWORD
     )
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 
 def get_active_horton_fc(station_id: str) -> float:
@@ -52,6 +63,7 @@ def get_active_horton_fc(station_id: str) -> float:
     except Exception as e:
         logger.warning(f"Could not fetch Horton fc for {station_id}: {e}")
     return 0.96  # Default fallback (mm/min)
+
 
 
 def on_connect(client, userdata, flags, rc):
@@ -153,7 +165,15 @@ def on_message(client, userdata, msg):
                     sm=sm_list
                 )
 
+                now_epoch = time.time()
                 for alert in alerts:
+                    key = (station_id, alert["alert_type"])
+                    last_time = recent_alerts.get(key, 0)
+                    # Debounce: Skip duplicate alerts for the same station & type within cooldown period
+                    if now_epoch - last_time < ALERT_COOLDOWN_SECONDS:
+                        continue
+
+                    recent_alerts[key] = now_epoch
                     cur.execute(
                         """
                         INSERT INTO ews_alerts (
@@ -176,6 +196,7 @@ def on_message(client, userdata, msg):
                     alert_topic = f"hydrosense/{station_id}/alert"
                     client.publish(alert_topic, json.dumps(alert))
                     logger.warning(f"🚨 EWS ALERT TRIGGERED: {alert['title']} [{station_id}]")
+
 
             conn.commit()
 
